@@ -4,9 +4,11 @@
 #include <atomic>//原子
 #include "CELLTimestamp.hpp"
 using namespace std;
+
 //原子操作（不可分割的操作）计算机处理命令时最小的操作单位
 mutex m;
 const int tCount = 4;
+
 atomic<int> sum = 0;//可以避免锁的使用
 //说明：主线程和子线程都调用了cout即使有换行，因为没有锁定调用还是有时会并做一行
 //锁：不应该频繁使用；合理锁定区域
