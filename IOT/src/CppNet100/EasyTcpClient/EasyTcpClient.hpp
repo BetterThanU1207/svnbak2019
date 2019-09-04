@@ -63,13 +63,13 @@ public:
 		return 0;
 	}
 	//连接服务器
-	void ConnectServer(const char* ip, unsigned short port)
+	int ConnectServer(const char* ip, unsigned short port)
 	{
 		if (INVALID_SOCKET == _sock)
 		{
 			if (-1 == InitSocket())
 			{
-				return;
+				return -1;
 			}			
 		}
 		// 2 connect 连接服务器
@@ -93,6 +93,7 @@ public:
 		else {
 			//printf("<socket=%d>连接服务器<%s:%d>成功。。。\n", (int)_sock, ip, port);
 		}
+		return ret;
 	}
 
 	//关闭socket
@@ -208,7 +209,7 @@ public:
 	}
 
 	//响应网络消息
-	void OnNetMsg(DataHeader* header)
+	virtual void OnNetMsg(DataHeader* header)
 	{
 		// 6 处理请求		
 		switch (header->cmd)
@@ -245,11 +246,11 @@ public:
 	}
 
 	//发送数据
-	int SendData(DataHeader* header)
+	int SendData(DataHeader* header,int nLen)
 	{
 		if (isRun() && header)
 		{
-			return send(_sock, (const char*)header, header->dataLength, 0);
+			return send(_sock, (const char*)header, nLen, 0);
 		}
 		return SOCKET_ERROR;
 	}

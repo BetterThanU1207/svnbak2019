@@ -25,8 +25,10 @@ void cmdThread()
 int main()
 {
 	EasyTcpServer server;
+	server.InitSocket();
 	server.BindPort(nullptr, 4567);
 	server.ListenPort(5);
+	server.Start();
 	//启动线程
 	std::thread t1(cmdThread);
 	t1.detach();//与主线程分离
@@ -34,6 +36,7 @@ int main()
 	{
 		server.OnRun();
 	}
+	server.CloseSocket();
 	printf("已退出，任务结束。\n");
 	getchar();
 	return 0;

@@ -41,7 +41,7 @@ void cmdThread( /*EasyTcpClient* client*/)
 }
 
 //客户端数量
-const int cCount = 1000;//windows默认客户端最大个数，减去一个服务端，超出了则不会传输数据
+const int cCount = 10000;//windows默认客户端最大个数，减去一个服务端，超出了则不会传输数据
 //线程数量
 const int tCount = 4;
 //需要用指针，不然栈内存会爆掉
@@ -61,22 +61,30 @@ void sendThread(int id)
 	}
 	for (int n = begin; n < end; n++)
 	{
-		printf("Connect=%d\n", n);
+		printf("thread<%d>,Connect=%d\n", id, n);
 		client[n]->ConnectServer("127.0.0.1", 4567);
 	}
 
-	Login login;
-	strcpy_s(login.userName, "lyd");
-	strcpy_s(login.passWord, "lydmm");
-	while (g_bRun/*client.isRun()*/)
+	//休眠
+	std::chrono::milliseconds t(5000);
+	std::this_thread::sleep_for(t);
+
+	Login login[10];
+	for (int n = 0; n < 10; n++)
+	{
+		strcpy_s(login[n].userName, "lyd");
+		strcpy_s(login[n].passWord, "lydmm");
+	}
+	const int nLen = sizeof(login);
+	while (g_bRun)
 	{
 		for (int n = begin; n < end; n++)
 		{
-			client[n]->SendData(&login);
+			client[n]->SendData(login, nLen);
 			//client[n]->OnRun();
 		}
-
 	}
+
 	for (int n = begin; n < end; n++)
 	{
 		client[n]->CloseSocket();
