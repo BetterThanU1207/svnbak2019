@@ -22,13 +22,15 @@ void cmdThread()
 		}
 	}
 }
+
+
 int main()
 {
 	EasyTcpServer server;
 	server.InitSocket();
 	server.BindPort(nullptr, 4567);
 	server.ListenPort(5);
-	server.Start();
+	server.Start(4);
 	//启动线程
 	std::thread t1(cmdThread);
 	t1.detach();//与主线程分离
