@@ -22,6 +22,7 @@
 
 #include <stdio.h>
 #include <vector>
+#include<map>
 #include <thread>
 #include <mutex>
 #include <functional>//mem_fun 安全转换
@@ -120,8 +121,14 @@ public:
 		return _sock != INVALID_SOCKET;
 	}
 	//处理网络消息
+	//备份客户socket fd_set
+	fd_set _fdRead_bak;
+	//客户列表是否有变化
+	bool _clients_change;
+	SOCKET _maxSock;
 	bool OnRun()
 	{
+		_clients_change = true;
 		while (isRun())
 		{		
 			if (_clientsBuff.size() > 0)
@@ -130,9 +137,10 @@ public:
 				std::lock_guard<std::mutex> lock(_mutex);
 				for (auto pClient : _clientsBuff)
 				{
-					_clients.push_back(pClient);
+					_clients[pClient->sockfd()] = pClient;
 				}
 				_clientsBuff.clear();
+				_clients_change = true;
 			}
 			//如果没有需要处理的客户端，就跳过
 			if (_clients.empty())
@@ -155,50 +163,83 @@ public:
 			//FD_SET(_sock, &fdWrite);
 			//FD_SET(_sock, &fdExp);
 
-			SOCKET maxSock = _clients[0]->sockfd();
-			//size_t不能做--
-			for (int n = (int)_clients.size() - 1; n >= 0; n--)
+			if (_clients_change)
 			{
-				//将客户端socket加入集合
-				FD_SET(_clients[n]->sockfd(), &fdRead);
-				if (maxSock < _clients[n]->sockfd())
+				_clients_change = false;
+				//将描述符（socket）加入集合
+				_maxSock = _clients.begin()->second->sockfd();
+				for (auto iter : _clients)
 				{
-					maxSock = _clients[n]->sockfd();
+					//将客户端socket加入集合
+					FD_SET(iter.second->sockfd(), &fdRead);
+					if (_maxSock < iter.second->sockfd())
+					{
+						_maxSock = iter.second->sockfd();
+					}
 				}
+				memcpy(&_fdRead_bak,  &fdRead, sizeof(fd_set));
 			}
+			else
+			{
+				memcpy(&fdRead, &_fdRead_bak, sizeof(fd_set));
+			}
+
 			//nfds 是一个整数值 是指fd_set集合中所有描述符（socket）的范围，而不是数量，
 			//既是所有文件描述符最大值+1 在windows中这个参数可以写0
 			//select最后一个参数是null，是阻塞模式（有数据可操作的时候才返回），纯接收数据的服务可以接受
 			//timeval t = { 1, 0 };//查询时间为1 最大查询时间为1并非等待1s 非阻塞网络模型  综合性网络程序\
 			//只收数据，不需要主动查询实例
-			int ret = select(maxSock + 1, &fdRead, nullptr, nullptr, nullptr);
+			int ret = select(_maxSock + 1, &fdRead, nullptr, nullptr, nullptr);
 			if (ret < 0)
 			{
 				printf("select任务结束。\n");
 				CloseSocket();
 				return false;
 			}
-
-			for (int n = (int)_clients.size() - 1; n >= 0; n--)
+			else if (ret == 0)
 			{
-				if (FD_ISSET(_clients[n]->sockfd(), &fdRead))
+				continue;
+			}
+			
+#ifdef _WIN32
+			for (int n = 0; n < fdRead.fd_count; n++)
+			{
+				auto iter  = _clients.find(fdRead.fd_array[n]);
+				if (iter != _clients.end())
 				{
-					if (-1 == RecvData(_clients[n]))
+					if (-1 == RecvData(iter->second))
 					{
-						//客户端退出在客户端集合中删除客户端
-						auto iter = _clients.begin() + n;
-						if (iter != _clients.end())
-						{
-							if (_pNetEvent)
-							{
-								_pNetEvent->OnNetLeave(_clients[n]);
-							}
-							delete _clients[n];
-							_clients.erase(iter);
-						}
+						if (_pNetEvent)
+							_pNetEvent->OnNetLeave(iter->second);
+						_clients_change = true;
+						_clients.erase(iter->first);
+					}
+				}else {
+					printf("error. if (iter != _clients.end())\n");
+				}
+
+			}
+#else
+			std::vector<ClientSocket*> temp;
+			for (auto iter : _clients)
+			{
+				if (FD_ISSET(iter.second->sockfd(), &fdRead))
+				{
+					if (-1 == RecvData(iter.second))
+					{
+						if (_pNetEvent)
+							_pNetEvent->OnNetLeave(iter.second);
+						_clients_change = false;
+						temp.push_back(iter.second);
 					}
 				}
 			}
+			for (auto pClient : temp)
+			{
+				_clients.erase(pClient->sockfd());
+				delete pClient;
+			}
+#endif
 		}
 	}
 
@@ -248,7 +289,7 @@ public:
 	virtual void OnNetMsg(ClientSocket* pClient, DataHeader* header)
 	{
 		_pNetEvent->OnNetMsg(pClient, header);
-
+		return;
 		// 6 处理请求
 		switch (header->cmd)
 		{
@@ -323,8 +364,8 @@ public:
 private:
 	SOCKET _sock;
 	//正式客户队列
-	std::vector<ClientSocket*> _clients;//创建指针（动态内存）不会崩溃
-	//客户端缓冲队列
+	std::map<SOCKET,ClientSocket*> _clients;
+	//缓冲客户队列
 	std::vector<ClientSocket*> _clientsBuff;
 	//缓冲队列的锁
 	std::mutex _mutex;
@@ -377,7 +418,7 @@ public:
 			printf("<socket=%d>关闭旧连接。。。\n", (int)_sock);
 			CloseSocket();
 		}
-		_sock = socket(AF_INET, SOCK_STREAM, 0);
+		_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		if (INVALID_SOCKET == _sock)
 		{
 			printf("错误，建立socket失败。。。\n");
@@ -423,7 +464,7 @@ public:
 			_sin.sin_addr.s_addr = INADDR_ANY;
 		}
 #endif
-		int ret = bind(_sock, (sockaddr*)&_sin, sizeof(sockaddr_in));
+		int ret = bind(_sock, (sockaddr*)&_sin, sizeof(_sin));
 		if (SOCKET_ERROR == ret)
 		{
 			printf("错误，绑定网络端口<%d>失败。。。\n", port);
