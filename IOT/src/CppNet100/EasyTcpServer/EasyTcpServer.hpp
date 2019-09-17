@@ -68,7 +68,7 @@ public:
 	int SendData(DataHeader* header)
 	{
 		if (header)
-		{
+		{//定量
 			return send(_sockfd, (const char*)header, header->dataLength, 0);
 		}
 		return SOCKET_ERROR;
@@ -92,6 +92,8 @@ public:
 	virtual void OnNetLeave(ClientSocket* pClient) = 0;//纯虚函数
 	//客户端消息事件
 	virtual void OnNetMsg(ClientSocket* pClient, DataHeader* header) = 0;
+	//recv事件
+	virtual void OnNetRecv(ClientSocket* pClient) = 0;
 private:
 
 };
@@ -250,6 +252,7 @@ public:
 	{
 		// 5 接收数据
 		int nLen = (int)recv(pClient->sockfd(), _szRecv, RECV_BUFF_SIZE, 0);
+		_pNetEvent->OnNetRecv(pClient);
 		if (nLen <= 0)
 		{
 			//printf("客户端<Socket=%d>已退出，任务结束。\n", pClient->sockfd());
@@ -288,36 +291,7 @@ public:
 	//响应网络消息
 	virtual void OnNetMsg(ClientSocket* pClient, DataHeader* header)
 	{
-		_pNetEvent->OnNetMsg(pClient, header);
-		return;
-		// 6 处理请求
-		switch (header->cmd)
-		{
-		case CMD_LOGIN:
-		{
-			Login* login = (Login*)header;
-			//printf("收到客户端<Socket=%d>请求：CMD_LOGIN 数据长度：%d,  userName=%s passWord=%s \n", cSock, login->dataLength, login->userName, login->passWord);
-			//忽略判断用户名密码是否正确的过程
-			LoginResult ret;
-			pClient->SendData(&ret);
-		}
-		break;
-		case CMD_LOGOUT:
-		{
-			Logout* logout = (Logout*)header;
-			//printf("收到客户端<Socket=%d>请求：CMD_LOGOUT 数据长度：%d,  userName=%s\n", cSock, logout->dataLength, logout->userName);
-			//忽略判断用户名密码是否正确的过程
-			//LogoutResult ret;
-			//SendData(cSock, &ret);
-		}
-		break;
-		default:
-		{
-			printf("<socket=%d>收到未定义消息，数据长度：%d \n", (int)pClient->sockfd(), header->dataLength);
-			//SendData(cSock, header);
-		}
-		break;
-		}
+		_pNetEvent->OnNetMsg(pClient, header);		
 	}
 	//关闭socket
 	void CloseSocket()
@@ -383,10 +357,14 @@ private:
 	std::vector<CellServer*> _cellServers;
 	//每秒消息计时
 	CELLTimestamp _tTime;
-	//收到消息计数
+protected:
+	//socket recv 计数
 	std::atomic_int _recvCount;
+	//收到消息计数
+	std::atomic_int _msgCount;
 	//客户端加入计数
 	std::atomic_int _clientCount;
+
 
 public:
 	EasyTcpServer()
@@ -394,6 +372,7 @@ public:
 		_sock = INVALID_SOCKET;
 		_cellServers.clear();
 		_recvCount = 0;
+		_msgCount = 0;
 		_clientCount = 0;
 	}
 	virtual ~EasyTcpServer()
@@ -617,9 +596,10 @@ public:
 		auto t1 = _tTime.getElapsedSecond();
 		if (t1  >= 1.0)
 		{			
-			printf("thread<%d>,time<%lf>,socket<%d>, clients<%d>, recvCount<%d>\n",_cellServers.size(), t1, _sock, (int)_clientCount, (int)(_recvCount/t1));
+			printf("thread<%d>,time<%lf>,socket<%d>, clients<%d>, recv<%d>, msg<%d>\n",_cellServers.size(), t1, _sock, (int)_clientCount, (int)(_recvCount/t1), (int)(_msgCount / t1));
 			_tTime.update();
 			_recvCount = 0;
+			_msgCount = 0;
 		}		
 	}
 	//只被一个线程触发 安全

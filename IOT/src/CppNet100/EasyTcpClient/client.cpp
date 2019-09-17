@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <thread>
-
+#include <atomic>
 #include "EasyTcpClient.hpp"
+#include "CELLTimestamp.hpp"
+
 bool g_bRun = true;
 void cmdThread( /*EasyTcpClient* client*/)
 {
@@ -47,6 +49,8 @@ const int tCount = 4;
 //需要用指针，不然栈内存会爆掉
 //客户端数组
 EasyTcpClient* client[cCount];//声明多个对象就可以连接多个服务器
+std::atomic_int sendCount = 0;
+std::atomic_int readyCount = 0;
 
 void sendThread(int id)
 {	
@@ -67,9 +71,13 @@ void sendThread(int id)
 
 	printf("thread<%d>,Connect<begin=%d, end=%d>\n", id, begin, end);
 
-	//休眠
-	std::chrono::milliseconds t(3000);
-	std::this_thread::sleep_for(t);
+	readyCount++;
+	while (readyCount < tCount)
+	{
+		//休眠  等待其他线程准备好发送数据 并发
+		std::chrono::milliseconds t(10);
+		std::this_thread::sleep_for(t);
+	}
 
 	Login login[1];
 	for (int n = 0; n < 1; n++)
@@ -82,7 +90,10 @@ void sendThread(int id)
 	{
 		for (int n = begin; n < end; n++)
 		{
-			client[n]->SendData(login, nLen);
+			if (SOCKET_ERROR != client[n]->SendData(login, nLen))
+			{
+				sendCount++;
+			}			
 			client[n]->OnRun();
 		}
 	}
@@ -109,9 +120,18 @@ int main()
 		t1.detach();
 	}
 
+	CELLTimestamp tTime;
+
 	while (g_bRun)
 	{
-		Sleep(100);
+		auto t = tTime.getElapsedSecond();
+		if (t >= 1.0)
+		{
+			printf("thread<%d>, clients<%d>,time<%lf>,send<%d>\n", tCount, cCount, t, (int)(sendCount / t));
+			tTime.update();
+			sendCount = 0;
+		}
+		Sleep(1);
 	}
 	
 	printf("已退出，任务结束。\n");
