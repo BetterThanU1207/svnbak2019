@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
-
+#include<mutex>//锁
 #ifdef _DEBUG
 #include<stdio.h>
 	#define xPrintf(...) printf(__VA_ARGS__)//宏代替函数层级、参数一定要注意
@@ -46,6 +46,7 @@ public:
 		_pHeader = nullptr;
 		_nSize = 0;
 		_nBlockSize = 0;
+		xPrintf("MemoryAlloc\n");
 	}
 	~MemoryAlloc()
 	{
@@ -91,25 +92,30 @@ public:
 	{
 		MemoryBlock* pBlock = (MemoryBlock*)((char*)pMem - sizeof(MemoryBlock));
 		assert(1 == pBlock->nRef);
-		if (--pBlock->nRef != 0)//共享内存的情况
+		if (pBlock->bPool)
 		{
-			return;
-		}
-		if (pBlock->bPool)//在内存池中
-		{
+			std::lock_guard<std::mutex> lg(_mutex);
+			if (--pBlock->nRef != 0)
+			{
+				return;
+			}
 			pBlock->pNext = _pHeader;
 			_pHeader = pBlock;
 		}
-		else//池外 向系统直接申请的 直接释放
-		{
-			free(pBlock);//::优先查找系统库函数
-		}		
+		else {
+			if (--pBlock->nRef != 0)
+			{
+				return;
+			}
+			free(pBlock);
+		}
 	}
 
 	//初始化
 	void initMemory()
 	{
-		//断言 不满足条件抛出错误
+		xPrintf("initMemory:_nSzie=%d,_nBlockSzie=%d\n", _nSize, _nBlockSize);
+		//断言
 		assert(nullptr == _pBuf);
 		if (_pBuf)
 		{
@@ -153,6 +159,7 @@ protected:
 	size_t _nSize;
 	//内存单元的数量
 	size_t _nBlockSize;
+	std::mutex _mutex;
 };
 
 //便于在声明类成员变量时初始化MemoryAlloc的成员数据
@@ -182,6 +189,7 @@ private:
 		init_szAlloc(129, 256, &_mem256);
 		init_szAlloc(257, 512, &_mem512);
 		init_szAlloc(513, 1024, &_mem1024);
+		xPrintf("MemoryMgr\n");
 	}
 	~MemoryMgr()
 	{
