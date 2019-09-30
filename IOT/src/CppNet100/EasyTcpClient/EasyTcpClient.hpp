@@ -168,7 +168,7 @@ public:
 	//接收缓冲区 成员变量最好在构造函数中初始化
 	char _szRecv[RECV_BUFF_SIZE] = {};
 	//第二缓冲区 消息缓冲区
-	char _szMsgBuf[RECV_BUFF_SIZE * 5] = {};
+	char _szMsgBuf[RECV_BUFF_SIZE] = {};
 	//消息缓冲区的数据尾部位置
 	int _lastPos = 0;
 	//接收数据 处理粘包 拆分包

@@ -43,7 +43,7 @@ void cmdThread( /*EasyTcpClient* client*/)
 }
 
 //客户端数量
-const int cCount = 10;//windows默认客户端最大个数，减去一个服务端，超出了则不会传输数据
+const int cCount = 1000;//windows默认客户端最大个数，减去一个服务端，超出了则不会传输数据
 //线程数量
 const int tCount = 4;
 //需要用指针，不然栈内存会爆掉
@@ -51,6 +51,17 @@ const int tCount = 4;
 EasyTcpClient* client[cCount];//声明多个对象就可以连接多个服务器
 std::atomic_int sendCount = 0;
 std::atomic_int readyCount = 0;
+
+void recvThread(int begin, int end)
+{
+	while (g_bRun)
+	{
+		for (int n = begin; n < end; n++)
+		{
+			client[n]->OnRun();
+		}
+	}
+}
 
 void sendThread(int id)
 {	
@@ -78,7 +89,10 @@ void sendThread(int id)
 		std::chrono::milliseconds t(10);
 		std::this_thread::sleep_for(t);
 	}
-
+	//
+	std::thread t1(recvThread, begin, end);
+	t1.detach();
+	//
 	Login login[1];
 	for (int n = 0; n < 1; n++)
 	{
@@ -94,8 +108,10 @@ void sendThread(int id)
 			{
 				sendCount++;
 			}			
-			client[n]->OnRun();
 		}
+		//休眠  等待其他线程准备好发送数据 并发
+		//std::chrono::milliseconds t(10);
+		//std::this_thread::sleep_for(t);
 	}
 
 	for (int n = begin; n < end; n++)
@@ -110,8 +126,7 @@ int main()
 {
 	//启动UI线程
 	std::thread t1(cmdThread);
-	t1.detach();//与主线程分离
-	
+	t1.detach();//与主线程分离	
 
 	//启动发送线程
 	for (int i = 0; i < tCount; i++)
