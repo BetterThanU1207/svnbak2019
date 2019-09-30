@@ -143,6 +143,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Alloctor.h" />
+    <ClInclude Include="CELLObjectPoll.hpp" />
     <ClInclude Include="CELLTimestamp.hpp" />
     <ClInclude Include="MemoryMgr.hpp" />
   </ItemGroup>

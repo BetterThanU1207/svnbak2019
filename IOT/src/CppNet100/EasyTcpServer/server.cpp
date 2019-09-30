@@ -52,9 +52,9 @@ public:
 			//忽略判断用户密码是否正确的过程
 			//LoginResult ret;
 			//pClient->SendData(&ret);
-			LoginResult* ret = new LoginResult();
-			pCellServer->addSendTask(pClient, ret);
-		}
+			auto ret = std::make_shared<LoginResult>();
+			pCellServer->addSendTask(pClient, (DataHeaderPtr)ret);
+		}//接收 消息---处理 发送   生产者 数据缓冲区  消费者 
 		break;
 		case CMD_LOGOUT:
 		{

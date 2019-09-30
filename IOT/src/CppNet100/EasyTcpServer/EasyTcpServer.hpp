@@ -32,15 +32,19 @@
 #include "MessageHeader.hpp"
 #include "CELLTimestamp.hpp"
 #include "CELLTask.hpp"
+#include "CELLObjectPool.hpp"
 
 //缓冲区最小单元大小
 #ifndef RECV_BUFF_SIZE
-#define RECV_BUFF_SIZE 10240
+#define RECV_BUFF_SIZE 10240*5
 #define SEND_BUFF_SIZE RECV_BUFF_SIZE
-#endif
+#endif // !RECV_BUFF_SIZE
+
+typedef std::shared_ptr<DataHeader> DataHeaderPtr;
+typedef std::shared_ptr<LoginResult> LoginResultPtr;
 
 //客户端数据类型
-class ClientSocket
+class ClientSocket : public ObjectPoolBase<ClientSocket, 10>
 {
 public:
 	ClientSocket(SOCKET sockfd = INVALID_SOCKET)
@@ -72,13 +76,14 @@ public:
 	}
 
 	//发送数据
-	int SendData(DataHeader* header)
+	int SendData(DataHeaderPtr& header)
 	{
 		int ret = SOCKET_ERROR;
 		//要发送的数据长度
 		int nSendLen = header->dataLength;
 		//要发送的数据
-		const char* pSendData = (const char*)header;
+		const char* pSendData = (const char*)header.get();
+
 		while (true)
 		{
 			if (_lastSendPos + nSendLen >= SEND_BUFF_SIZE)
@@ -90,7 +95,7 @@ public:
 				//计算剩余数据位置
 				pSendData += nCopyLen;
 				//计算剩余数据长度
-				nSendLen -= nCopyLen;
+				nSendLen -= nSendLen;
 				//发送数据
 				ret = send(_sockfd, _szSendBuf, SEND_BUFF_SIZE, 0);
 				//数据尾部位置清零
@@ -150,9 +155,9 @@ private:
 class CellS2CTask : public CellTask
 {
 	ClientSocketPtr _pClient;
-	DataHeader* _pHeader;
+	DataHeaderPtr _pHeader;
 public:
-	CellS2CTask(ClientSocketPtr pClient, DataHeader* header)
+	CellS2CTask(ClientSocketPtr& pClient, DataHeaderPtr& header)
 	{
 		_pClient = pClient;
 		_pHeader = header;
@@ -162,7 +167,6 @@ public:
 	void doTask()
 	{
 		_pClient->SendData(_pHeader);
-		delete _pHeader;
 	}
 };
 
@@ -309,7 +313,6 @@ public:
 			for (auto pClient : temp)
 			{
 				_clients.erase(pClient->sockfd());
-				delete pClient;
 			}
 #endif
 		}
@@ -317,7 +320,7 @@ public:
 
 	//缓冲区
 	//接收数据 处理粘包 拆分包
-	int RecvData(ClientSocketPtr pClient)
+	int RecvData(ClientSocketPtr& pClient)
 	{
 		char* szRecv = pClient->msgBuf() + pClient->getLastPos();
 		// 5 接收数据
@@ -359,7 +362,7 @@ public:
 		return 0;
 	}
 	//响应网络消息
-	virtual void OnNetMsg(ClientSocketPtr pClient, DataHeader* header)
+	virtual void OnNetMsg(ClientSocketPtr& pClient, DataHeader* header)
 	{
 		_pNetEvent->OnNetMsg(this, pClient, header);		
 	}
@@ -387,7 +390,7 @@ public:
 		_clients.clear();
 	}
 
-	void addClient(ClientSocketPtr pClient)
+	void addClient(ClientSocketPtr& pClient)
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
 		//_mutex.lock();
@@ -406,7 +409,7 @@ public:
 		return _clients.size() + _clientsBuff.size();
 	}
 
-	void addSendTask(ClientSocketPtr pClient, DataHeader* header)
+	void addSendTask(ClientSocketPtr& pClient, DataHeaderPtr& header)
 	{
 		auto task = std::make_shared<CellS2CTask>(pClient, header);
 		_taskServer.addTask((CellTaskPtr)task);
@@ -449,7 +452,6 @@ public:
 	EasyTcpServer()
 	{
 		_sock = INVALID_SOCKET;
-		_cellServers.clear();
 		_recvCount = 0;
 		_msgCount = 0;
 		_clientCount = 0;
@@ -457,8 +459,6 @@ public:
 	virtual ~EasyTcpServer()
 	{
 		CloseSocket();
-		_sock = INVALID_SOCKET;
-		_cellServers.clear();
 	}
 	//初始化socket
 	SOCKET InitSocket()
@@ -565,12 +565,15 @@ public:
 		else
 		{			
 			//将新客户端分配给客户数量最少的CellServer			
-			addClient2CellServer(std::make_shared<ClientSocket>(cSock));
+			ClientSocketPtr c(new ClientSocket(cSock));
+			//addClient2CellServer(std::make_shared<ClientSocket>(cSock));
+			addClient2CellServer(c);
 			//获取IP地址 inet_ntoa(clientAddr.sin_addr);
 		}
 		return cSock;
 	}
-	void addClient2CellServer(ClientSocketPtr pClient)
+	
+	void addClient2CellServer(ClientSocketPtr& pClient)
 	{
 		//查找客户端数量最少的CellServer消息处理对象
 		auto pMinServer = _cellServers[0];
@@ -610,11 +613,7 @@ public:
 			//清除windows socket环境
 			WSACleanup();
 #else
-			for (int n = (int)_clients.size() - 1; n >= 0; n--)
-			{
-				close(_clients[n]->sockfd());
-			}
-			// 8 closesocket 关闭套接字
+			//关闭套节字closesocket
 			close(_sock);
 #endif
 		}

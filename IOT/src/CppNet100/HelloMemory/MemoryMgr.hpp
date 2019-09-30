@@ -4,11 +4,16 @@
 #include <stdlib.h>
 #include <assert.h>
 #include<mutex>//锁
+
 #ifdef _DEBUG
-#include<stdio.h>
-	#define xPrintf(...) printf(__VA_ARGS__)//宏代替函数层级、参数一定要注意
+	#ifndef xPrintf
+		#include<stdio.h>
+		#define xPrintf(...) printf(__VA_ARGS__)//宏代替函数层级、参数一定要注意
+	#endif
 #else
+#ifndef xPrintf
 	#define xPrintf(...)
+#endif
 #endif // _DEBUG
 
 
@@ -60,6 +65,7 @@ public:
 	//申请内存
 	void* allocMemory(size_t nSize)
 	{
+		std::lock_guard<std::mutex> lg(_mutex);
 		if (!_pBuf)
 		{ 
 			initMemory();
@@ -92,6 +98,7 @@ public:
 	{
 		MemoryBlock* pBlock = (MemoryBlock*)((char*)pMem - sizeof(MemoryBlock));
 		assert(1 == pBlock->nRef);
+		xPrintf("freeMemory:%llx, id=%d\n", pBlock, pBlock->nID);
 		if (pBlock->bPool)
 		{
 			std::lock_guard<std::mutex> lg(_mutex);
@@ -175,7 +182,6 @@ public:
 		_nSize = (nSize/n)*n + (nSize % n ? n : 0);
 		_nBlockSize = nBlockSize;
 	}
-private:
 };
 
 //内存管理工具 单例模式
