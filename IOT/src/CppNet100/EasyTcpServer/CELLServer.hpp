@@ -8,26 +8,6 @@
 #include "INetEvent.hpp"
 #include "CELLClient.hpp"
 
-//网络消息发送任务
-class CellSendMsg2ClientTask : public CellTask
-{
-	CellClient* _pClient;
-	netmsg_DataHeader* _pHeader;
-public:
-	CellSendMsg2ClientTask(CellClient* pClient, netmsg_DataHeader* header)
-	{
-		_pClient = pClient;
-		_pHeader = header;
-	}
-
-	//执行任务
-	void doTask()
-	{
-		_pClient->SendData(_pHeader);
-		delete _pHeader;
-	}
-};
-
 //网络消息接收服务类
 class CellServer
 {
@@ -271,8 +251,11 @@ public:
 
 	void addSendTask(CellClient* pClient, netmsg_DataHeader* header)
 	{
-		CellSendMsg2ClientTask* task = new CellSendMsg2ClientTask(pClient, header);
-		_taskServer.addTask(task);
+		//拉曼达函数
+		_taskServer.addTask( [pClient, header] () {
+			pClient->SendData(header);
+			delete header;
+		});
 	}
 private:
 	SOCKET _sock;

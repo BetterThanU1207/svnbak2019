@@ -5,37 +5,16 @@
 #include <mutex>
 #include <list>
 #include <functional>//mem_fun 安全转换
-//任务类型-基类
-class CellTask
-{
-public:
-	CellTask()
-	{
-
-	}
-	//虚析构
-	virtual ~CellTask()
-	{
-
-	}
-	//执行任务
-	virtual void doTask()
-	{
-
-	}
-
-private:
-
-};
 
 //执行任务的服务类型
 class CellTaskServer
 {
+	typedef std::function< void() > CellTask;
 private:
 	//任务数据
-	std::list<CellTask*> _tasks;
+	std::list<CellTask> _tasks;
 	//任务数据缓冲区
-	std::list<CellTask*> _tasksBuf;
+	std::list<CellTask> _tasksBuf;
 	//改变数据缓冲区时需要加锁
 	std::mutex _mutex;
 
@@ -49,7 +28,7 @@ public:
 
 	//}
 	//添加任务
-	void addTask(CellTask* task)
+	void addTask(CellTask task)
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
 		_tasksBuf.push_back(task);
@@ -87,8 +66,7 @@ protected:
 			//处理任务
 			for (auto pTask : _tasksBuf)
 			{
-				pTask->doTask();
-				delete pTask;//可能会有野指针
+				pTask();
 			}
 			//清空任务
 			_tasks.clear();

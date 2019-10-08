@@ -6,7 +6,7 @@
 	#include <windows.h>
 	#include <WinSock2.h>
 	#include <WS2tcpip.h>
-	#pragma comment(lib, "ws2_32.lib")
+	#pragma comment(lib, "ws2_32.lib") 
 #else
 	#include <unistd.h>//uni std unix系统下的标准库
 	#include<arpa/inet.h>
