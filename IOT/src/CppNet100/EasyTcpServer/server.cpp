@@ -45,14 +45,15 @@ public:
 		{
 		case CMD_LOGIN:
 		{
-
+			pClient->resetDTHeart();
 			netmsg_Login* login = (netmsg_Login*)header;
 			//printf("收到客户端<Socket=%d>请求：CMD_LOGIN,数据长度：%d,userName=%s PassWord=%s\n", cSock, login->dataLength, login->userName, login->PassWord);
 			//忽略判断用户密码是否正确的过程
-			//netmsg_LoginR ret;
-			//pClient->SendData(&ret);
-			netmsg_LoginR* ret = new netmsg_LoginR();
-			pCellServer->addSendTask(pClient, ret);
+			netmsg_LoginR ret;
+			pClient->SendData(&ret);
+			//先不使用任务系统
+			//netmsg_LoginR* ret = new netmsg_LoginR();
+			//pCellServer->addSendTask(pClient, ret);
 		}
 		break;
 		case CMD_LOGOUT:
@@ -62,6 +63,13 @@ public:
 			//忽略判断用户密码是否正确的过程
 			//netmsg_LogoutR ret;
 			//SendData(cSock, &ret);
+		}
+		break;
+		case CMD_C2S_HEART:
+		{
+			pClient->resetDTHeart();
+			netmsg_s2c_Heart ret;
+			pClient->SendData(&ret);
 		}
 		break;
 		default:

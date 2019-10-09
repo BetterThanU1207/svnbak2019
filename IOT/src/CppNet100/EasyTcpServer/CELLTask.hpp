@@ -7,9 +7,9 @@
 #include <functional>//mem_fun 安全转换
 
 //执行任务的服务类型
-class CellTaskServer
+class CellTaskServer 
 {
-	typedef std::function< void() > CellTask;
+	typedef std::function<void()> CellTask;
 private:
 	//任务数据
 	std::list<CellTask> _tasks;
@@ -17,16 +17,7 @@ private:
 	std::list<CellTask> _tasksBuf;
 	//改变数据缓冲区时需要加锁
 	std::mutex _mutex;
-
 public:
-	//CellTaskServer()
-	//{
-
-	//}
-	//~CellTaskServer()
-	//{
-
-	//}
 	//添加任务
 	void addTask(CellTask task)
 	{
@@ -64,7 +55,7 @@ protected:
 				continue;
 			}
 			//处理任务
-			for (auto pTask : _tasksBuf)
+			for (auto pTask : _tasks)
 			{
 				pTask();
 			}
@@ -73,8 +64,5 @@ protected:
 		}
 
 	}
-
-
 };
-
 #endif // !_CELL_TASK_H_

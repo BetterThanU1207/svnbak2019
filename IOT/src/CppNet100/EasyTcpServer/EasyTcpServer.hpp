@@ -35,7 +35,6 @@ public:
 	EasyTcpServer()
 	{
 		_sock = INVALID_SOCKET;
-		_cellServers.clear();
 		_recvCount = 0;
 		_msgCount = 0;
 		_clientCount = 0;
@@ -43,8 +42,8 @@ public:
 	virtual ~EasyTcpServer()
 	{
 		CloseSocket();
-		_sock = INVALID_SOCKET;
-		_cellServers.clear();
+		//_sock = INVALID_SOCKET;
+		//_cellServers.clear();
 	}
 	//初始化socket
 	SOCKET InitSocket()
@@ -196,11 +195,7 @@ public:
 			//清除windows socket环境
 			WSACleanup();
 #else
-			for (int n = (int)_clients.size() - 1; n >= 0; n--)
-			{
-				close(_clients[n]->sockfd());
-			}
-			// 8 closesocket 关闭套接字
+			//关闭套节字closesocket
 			close(_sock);
 #endif
 		}
