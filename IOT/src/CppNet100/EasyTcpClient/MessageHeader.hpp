@@ -8,24 +8,26 @@ enum CMD
 	CMD_LOGOUT,
 	CMD_LOGOUT_RESULT,
 	CMD_NEW_USER_JOIN,
+	CMD_C2S_HEART,
+	CMD_S2C_HEART,
 	CMD_ERROR
 };
-struct DataHeader
+struct netmsg_DataHeader
 {
-	DataHeader()
+	netmsg_DataHeader()
 	{
-		dataLength = sizeof(DataHeader);
+		dataLength = sizeof(netmsg_DataHeader);
 		cmd = CMD_ERROR;
 	}
 	short dataLength;
 	short cmd;
 };
 //DataPackage继承的方式在构造函数中初始化
-struct Login : public DataHeader
+struct netmsg_Login : public netmsg_DataHeader
 {
-	Login()
+	netmsg_Login()
 	{
-		dataLength = sizeof(Login);
+		dataLength = sizeof(netmsg_Login);
 		cmd = CMD_LOGIN;
 	}
 	char userName[32];
@@ -33,11 +35,11 @@ struct Login : public DataHeader
 	char data[32];
 };
 
-struct LoginResult : public DataHeader
+struct netmsg_LoginR : public netmsg_DataHeader
 {
-	LoginResult()
+	netmsg_LoginR()
 	{
-		dataLength = sizeof(LoginResult);
+		dataLength = sizeof(netmsg_LoginR);
 		cmd = CMD_LOGIN_RESULT;
 		result = 0;
 	}
@@ -45,35 +47,51 @@ struct LoginResult : public DataHeader
 	char data[92];
 };
 
-struct Logout : public DataHeader
+struct netmsg_Logout : public netmsg_DataHeader
 {
-	Logout()
+	netmsg_Logout()
 	{
-		dataLength = sizeof(Logout);
+		dataLength = sizeof(netmsg_Logout);
 		cmd = CMD_LOGOUT;
 	}
 	char userName[32];
 };
 
-struct LogoutResult : public DataHeader
+struct netmsg_LogoutR : public netmsg_DataHeader
 {
-	LogoutResult()
+	netmsg_LogoutR()
 	{
-		dataLength = sizeof(LogoutResult);
+		dataLength = sizeof(netmsg_LogoutR);
 		cmd = CMD_LOGOUT_RESULT;
 		result = 0;
 	}
 	int result;
 };
 
-struct NewUserJoin : public DataHeader
+struct netmsg_NewUserJoin : public netmsg_DataHeader
 {
-	NewUserJoin()
+	netmsg_NewUserJoin()
 	{
-		dataLength = sizeof(NewUserJoin);
+		dataLength = sizeof(netmsg_NewUserJoin);
 		cmd = CMD_NEW_USER_JOIN;
 		socketID = 0;
 	}
 	int socketID;
+};
+struct netmsg_c2s_Heart : public netmsg_DataHeader
+{
+	netmsg_c2s_Heart()
+	{
+		dataLength = sizeof(netmsg_c2s_Heart);
+		cmd = CMD_C2S_HEART;
+	}
+};
+struct netmsg_s2c_Heart : public netmsg_DataHeader
+{
+	netmsg_s2c_Heart()
+	{
+		dataLength = sizeof(netmsg_s2c_Heart);
+		cmd = CMD_S2C_HEART;
+	}
 };
 #endif

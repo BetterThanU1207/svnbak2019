@@ -22,7 +22,7 @@ void cmdThread( /*EasyTcpClient* client*/)
 		}
 		//else if (0 == strcmp(cmdBuf, "login"))
 		//{
-		//	Login login;
+		//	netmsg_Login login;
 		//	strcpy_s(login.userName, "lyd");
 		//	strcpy_s(login.passWord, "lydmm");
 		//	// 5 向服务器发送请求
@@ -43,7 +43,7 @@ void cmdThread( /*EasyTcpClient* client*/)
 }
 
 //客户端数量
-const int cCount = 1000;//windows默认客户端最大个数，减去一个服务端，超出了则不会传输数据
+const int cCount = 8;//windows默认客户端最大个数，减去一个服务端，超出了则不会传输数据
 //线程数量
 const int tCount = 4;
 //需要用指针，不然栈内存会爆掉
@@ -93,7 +93,7 @@ void sendThread(int id)
 	std::thread t1(recvThread, begin, end);
 	t1.detach();
 	//
-	Login login[1];
+	netmsg_Login login[1];
 	for (int n = 0; n < 1; n++)
 	{
 		strcpy_s(login[n].userName, "lyd");
