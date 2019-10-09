@@ -3,7 +3,9 @@
 
 #include "CELL.hpp"
 //客户端心跳检测死亡计时时间
-#define CLIENT_HREAT_DEAD_TIME 5000
+#define CLIENT_HREAT_DEAD_TIME 60000
+//在间隔指定时间后把发送缓冲区内缓存的消息数据发送给客户端
+#define CLIENT_SEND_BUFF_TIME 200
 //客户端数据类型
 class CellClient
 {
@@ -18,6 +20,7 @@ public:
 		_lastSendPos = 0;
 
 		resetDTHeart();
+		resetDTSend();
 	}
 	SOCKET sockfd()
 	{
@@ -37,7 +40,25 @@ public:
 	{
 		_lastPos = pos;
 	}
-
+	//立即发送数据
+	int SendDataReal(netmsg_DataHeader* header)
+	{
+		SendData(header);
+		SendDataReal();
+	}
+	//立即将发送缓冲区的数据发送数据给客户端
+	int SendDataReal()
+	{
+		int ret = SOCKET_ERROR;
+		if (_lastSendPos > 0 && SOCKET_ERROR != _sockfd)
+		{
+			ret = send(_sockfd, _szSendBuf, _lastSendPos, 0);
+			//数据尾部位置清零
+			_lastSendPos = 0;
+			resetDTSend();
+		}
+		return ret;
+	}
 	//发送数据
 	int SendData(netmsg_DataHeader* header)
 	{
@@ -62,6 +83,8 @@ public:
 				ret = send(_sockfd, _szSendBuf, SEND_BUFF_SIZE, 0);
 				//数据尾部位置清零
 				_lastSendPos = 0;
+				//
+				resetDTSend();
 				//发送错误
 				if (SOCKET_ERROR == ret)
 				{
@@ -85,6 +108,11 @@ public:
 	{
 		_dtHeart = 0;
 	}
+
+	void resetDTSend()
+	{
+		_dtSend = 0;
+	}
 	//心跳检测
 	bool checkHeart(time_t dt)
 	{
@@ -97,7 +125,21 @@ public:
 		}
 		return false;
 	}
-
+	//定时发送消息检测
+	bool checkSend(time_t dt)
+	{
+		_dtSend += dt;
+		if (_dtSend >= CLIENT_SEND_BUFF_TIME)
+		{
+			printf("checkSend:s=%d, time=%d\n", _sockfd, _dtSend);
+			//立即将发送缓冲区的数据发送出去
+			SendDataReal();
+			//重置发送即时
+			resetDTSend();
+			return true;
+		}
+		return false;
+	}
 private:
 	//socket fd_set file desc set
 	SOCKET _sockfd;
@@ -112,5 +154,7 @@ private:
 	int _lastSendPos;
 	//心跳死亡计时
 	time_t _dtHeart;
+	//上次发送消息数据的时间
+	time_t _dtSend;
 };
 #endif // !_CellClient_hpp_

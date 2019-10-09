@@ -43,9 +43,9 @@ void cmdThread( /*EasyTcpClient* client*/)
 }
 
 //客户端数量
-const int cCount = 8;//windows默认客户端最大个数，减去一个服务端，超出了则不会传输数据
+const int cCount = 1;//windows默认客户端最大个数，减去一个服务端，超出了则不会传输数据
 //线程数量
-const int tCount = 4;
+const int tCount = 1;
 //需要用指针，不然栈内存会爆掉
 //客户端数组
 EasyTcpClient* client[cCount];//声明多个对象就可以连接多个服务器
@@ -110,8 +110,8 @@ void sendThread(int id)
 			}			
 		}
 		//休眠  等待其他线程准备好发送数据 并发
-		//std::chrono::milliseconds t(10);
-		//std::this_thread::sleep_for(t);
+		std::chrono::milliseconds t(100);
+		std::this_thread::sleep_for(t);
 	}
 
 	for (int n = begin; n < end; n++)
