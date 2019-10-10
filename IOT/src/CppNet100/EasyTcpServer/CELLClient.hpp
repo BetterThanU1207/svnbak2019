@@ -10,8 +10,14 @@
 class CellClient
 {
 public:
+	int id = -1;
+	//所属server id
+	int serverId = -1;
+public:
 	CellClient(SOCKET sockfd = INVALID_SOCKET)
 	{
+		static int n = 1;
+		id = n++;
 		_sockfd = sockfd;
 		memset(_szMsgBuf, 0, RECV_BUFF_SIZE);
 		_lastPos = 0;
@@ -21,6 +27,19 @@ public:
 
 		resetDTHeart();
 		resetDTSend();
+	} 
+	~CellClient()
+	{
+		printf("s=%d CellClient%d.~CellClient 1\n", serverId, id);
+		if (INVALID_SOCKET != _sockfd)
+		{
+#ifdef _WIN32
+			closesocket(_sockfd);
+#else
+			close(_sockfd);
+#endif
+			_sockfd = INVALID_SOCKET;
+		}		
 	}
 	SOCKET sockfd()
 	{
@@ -131,7 +150,7 @@ public:
 		_dtSend += dt;
 		if (_dtSend >= CLIENT_SEND_BUFF_TIME)
 		{
-			printf("checkSend:s=%d, time=%d\n", _sockfd, _dtSend);
+			//printf("checkSend:s=%d, time=%d\n", _sockfd, _dtSend);
 			//立即将发送缓冲区的数据发送出去
 			SendDataReal();
 			//重置发送即时

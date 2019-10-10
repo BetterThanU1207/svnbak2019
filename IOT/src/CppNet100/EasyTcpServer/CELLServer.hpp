@@ -7,20 +7,23 @@
 #include "CELL.hpp"
 #include "INetEvent.hpp"
 #include "CELLClient.hpp"
+#include "CELLSemaphore.hpp"
 
 //网络消息接收服务类
 class CellServer
 {
 public:
-	CellServer(SOCKET sock = INVALID_SOCKET)
+	CellServer(int id)
 	{
-		_sock = sock;
+		_id = id;
 		_pNetEvent = nullptr;
+		_taskServer.serverId = id;
 	}
 	~CellServer()
 	{
-		CloseSocket();
-		_sock = INVALID_SOCKET;
+		printf("CellServer%d.~CellServer exit begin 1\n", _id);
+		CloseSocket();		
+		printf("CellServer%d.~CellServer exit end 1\n", _id);
 	}
 
 	void setEventObj(INetEvent* event)
@@ -31,45 +34,25 @@ public:
 	//关闭socket
 	void CloseSocket()
 	{
-		if (INVALID_SOCKET != _sock)
+		if (_isRun)
 		{
-#ifdef _WIN32
-			for (auto iter : _clients)
-			{
-				closesocket(iter.second->sockfd());
-				delete iter.second;
-			}
-			//closesocket 关闭套接字
-			closesocket(_sock);
-#else
-			for (auto iter : _clients)
-			{
-				close(iter.second->sockfd());
-				delete iter.second;
-			}
-			//closesocket 关闭套接字
-			close(_sock);
-#endif
-			_clients.clear();
+			printf("CellServer%d.CloseSocket exit begin\n", _id);
+			_taskServer.Close();
+			_isRun = false;//上一句是阻塞的，所以必须放到其后面，不然onrun早早已退出
+			_sem.wait();
+			printf("CellServer%d.CloseSocket exit end\n", _id);
 		}
 	}
 
-
 	//判断是否工作中
-	bool isRun()
-	{
-		return _sock != INVALID_SOCKET;
-	}
+	//bool isRun()
+	//{
+	//	return _sock != INVALID_SOCKET;
+	//}
 	//处理网络消息
-	//备份客户socket fd_set
-	fd_set _fdRead_bak;
-	//客户列表是否有变化
-	bool _clients_change;
-	SOCKET _maxSock;
 	void OnRun()
 	{
-		_clients_change = true;
-		while (isRun())
+		while (_isRun)
 		{
 			if (!_clientsBuff.empty())
 			{
@@ -78,6 +61,11 @@ public:
 				for (auto pClient : _clientsBuff)
 				{
 					_clients[pClient->sockfd()] = pClient;
+					pClient->serverId = _id;
+					if (_pNetEvent)
+					{
+						_pNetEvent->OnNetJoin(pClient);
+					}									
 				}
 				_clientsBuff.clear();
 				_clients_change = true;
@@ -146,9 +134,11 @@ public:
 			ReadData(fdRead);
 			CheckTime();
 		}
+		printf("CellServer%d.OnRun exit\n", _id);
+		ClearClients();
+		_sem.wakeup();
 	}
-	//旧的时间戳
-	time_t _oldTime = CELLTime::getNowInMilliSec();
+	
 	void CheckTime()
 	{
 		//当前时间戳
@@ -169,7 +159,6 @@ public:
 				delete iter->second;
 				auto iterOld = iter;
 				iter++;
-				//closesocket(iterOld->first);
 				_clients.erase(iterOld);
 				continue;
 			}
@@ -191,7 +180,6 @@ public:
 					if (_pNetEvent)
 						_pNetEvent->OnNetLeave(iter->second);
 					_clients_change = true;
-					closesocket(iter->first);
 					delete iter->second;					
 					_clients.erase(iter);
 				}
@@ -286,8 +274,13 @@ public:
 
 	void Start()
 	{
-		_thread = std::thread(std::mem_fn(&CellServer::OnRun), this);
-		_taskServer.Start();
+		if (!_isRun)
+		{
+			_isRun = true;
+			std::thread t = std::thread(std::mem_fn(&CellServer::OnRun), this);
+			t.detach();
+			_taskServer.Start();
+		}
 	}
 
 	size_t getClientCount()
@@ -304,19 +297,44 @@ public:
 	//	});
 	//}
 private:
-	SOCKET _sock;
+		void ClearClients()
+		{
+			for (auto iter : _clients)
+			{
+				delete iter.second;
+			}
+			_clients.clear();
+			for (auto iterBuf : _clientsBuff)
+			{
+				delete iterBuf;
+			}
+			_clientsBuff.clear();
+		}
+private:
 	//正式客户队列
 	std::map<SOCKET, CellClient*> _clients;
 	//缓冲客户队列
 	std::vector<CellClient*> _clientsBuff;
 	//缓冲队列的锁
 	std::mutex _mutex;
-	std::thread _thread;
 	//网络事件对象
 	INetEvent* _pNetEvent;
 	//
 	CellTaskServer _taskServer;
+	//备份客户socket fd_set
+	fd_set _fdRead_bak;
+	//
+	SOCKET _maxSock;
+	//旧的时间戳
+	time_t _oldTime = CELLTime::getNowInMilliSec();
+	//
+	CELLSemaphore _sem;
+	//
+	int _id = -1;
+	//客户列表是否有变化
+	bool _clients_change;
+	//是否工作中
+	bool _isRun = false;
+
 };
-
-
 #endif // !_CELL_SERVER_HPP

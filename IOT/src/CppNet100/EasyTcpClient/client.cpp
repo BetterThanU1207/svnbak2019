@@ -43,9 +43,9 @@ void cmdThread( /*EasyTcpClient* client*/)
 }
 
 //客户端数量
-const int cCount = 1;//windows默认客户端最大个数，减去一个服务端，超出了则不会传输数据
+const int cCount = 20;//windows默认客户端最大个数，减去一个服务端，超出了则不会传输数据
 //线程数量
-const int tCount = 1;
+const int tCount = 4;
 //需要用指针，不然栈内存会爆掉
 //客户端数组
 EasyTcpClient* client[cCount];//声明多个对象就可以连接多个服务器

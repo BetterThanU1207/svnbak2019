@@ -87,7 +87,7 @@ private:
 
 int main()
 {
-
+	
 	MyServer server;
 	server.InitSocket();
 	server.BindPort(nullptr, 4567);
@@ -102,6 +102,15 @@ int main()
 	}
 	server.CloseSocket();
 	printf("已退出，任务结束。\n");
+	
+	//CellTaskServer task;
+	//task.Start();
+	//Sleep(100);
+	//task.Close();
+	while (true)
+	{
+		Sleep(1);
+	}
 	getchar();
 	return 0;
 }

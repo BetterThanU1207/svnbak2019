@@ -167,13 +167,13 @@ public:
 			}
 		}
 		pMinServer->addClient(pClient);
-		OnNetJoin(pClient);
+		
 	}
 	void Start(int nCellServer)
 	{
 		for (int i = 0; i < nCellServer; i++)
 		{
-			auto ser = new CellServer(_sock);
+			auto ser = new CellServer(i+1);
 			_cellServers.push_back(ser);
 			//注册网络事件接收对象
 			ser->setEventObj(this);
@@ -185,20 +185,26 @@ public:
 	//关闭socket
 	void CloseSocket()
 	{
+		printf("EasyTcpServer.CloseSocket begin\n");
 		if (INVALID_SOCKET != _sock)
 		{
+			for (auto s : _cellServers)
+			{
+				delete s;
+			}
+			_cellServers.clear();
+			//closesocket 关闭套接字
 #ifdef _WIN32
-
-			// 8 closesocket 关闭套接字
+			
 			closesocket(_sock);
-			//--------------
 			//清除windows socket环境
 			WSACleanup();
 #else
-			//关闭套节字closesocket
 			close(_sock);
 #endif
+			_sock = INVALID_SOCKET;
 		}
+		printf("EasyTcpServer.CloseSocket end\n");
 	}
 
 	//处理网络消息
