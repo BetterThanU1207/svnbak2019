@@ -60,7 +60,7 @@ public:
 		_lastPos = pos;
 	}
 	//立即发送数据
-	int SendDataReal(netmsg_DataHeader* header)
+	void SendDataReal(netmsg_DataHeader* header)
 	{
 		SendData(header);
 		SendDataReal();

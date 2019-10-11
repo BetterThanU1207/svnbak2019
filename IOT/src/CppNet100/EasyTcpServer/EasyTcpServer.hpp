@@ -17,11 +17,14 @@
 class EasyTcpServer : public INetEvent
 {
 private:
-	SOCKET _sock;
+	//
+	CELLThread _thread;
 	//消息处理对象，内部会创建线程
 	std::vector<CellServer*> _cellServers;
 	//每秒消息计时
 	CELLTimestamp _tTime;
+	//
+	SOCKET _sock;
 protected:
 	//socket recv 计数
 	std::atomic_int _recvCount;
@@ -180,12 +183,21 @@ public:
 			//启动消息处理线程
 			ser->Start();
 		}
+		_thread.Start(
+			//onCreate
+			nullptr,
+			//onRun
+			[this](CELLThread* pThread) {
+				OnRun(pThread);
+			}
+		);
 	}
 
 	//关闭socket
 	void CloseSocket()
 	{
 		printf("EasyTcpServer.CloseSocket begin\n");
+		_thread.Close();
 		if (INVALID_SOCKET != _sock)
 		{
 			for (auto s : _cellServers)
@@ -207,67 +219,6 @@ public:
 		printf("EasyTcpServer.CloseSocket end\n");
 	}
 
-	//处理网络消息
-	bool OnRun()
-	{
-		if (isRun())
-		{
-			time4msg();
-			//伯克利套接字 BSDsocket
-			fd_set fdRead;//描述符（socket）集合
-			//fd_set fdWrite;
-			//fd_set fdExp;
-			//集合计数清零
-			FD_ZERO(&fdRead);
-			//FD_ZERO(&fdWrite);
-			//FD_ZERO(&fdExp);
-			//将服务端socket加入集合
-			FD_SET(_sock, &fdRead);
-			//FD_SET(_sock, &fdWrite);
-			//FD_SET(_sock, &fdExp);
-
-			//nfds 是一个整数值 是指fd_set集合中所有描述符（socket）的范围，而不是数量，
-			//既是所有文件描述符最大值+1 在windows中这个参数可以写0
-			//select最后一个参数是null，是阻塞模式（有数据可操作的时候才返回），纯接收数据的服务可以接受
-			timeval t = { 0, 10 };//查询时间为1 最大查询时间为1并非等待1s 非阻塞网络模型  综合性网络程序
-			int ret = select(_sock + 1, &fdRead, 0, 0, &t);
-			if (ret < 0)
-			{
-				printf("Accept Select任务结束。\n");
-				CloseSocket();
-				return false;
-			}
-			//判断描述符是否在集合中
-			if (FD_ISSET(_sock, &fdRead))
-			{
-				FD_CLR(_sock, &fdRead);
-				AcceptClient();
-				return true;//只要有新连接暂时不处理数据
-			}
-			
-			return true;
-		}
-		return false;
-	}
-
-	//判断是否工作中
-	bool isRun()
-	{
-		return _sock != INVALID_SOCKET;
-	}
-
-	//计数并输出每秒收到的网络消息
-	void time4msg()
-	{		
-		auto t1 = _tTime.getElapsedSecond();
-		if (t1  >= 1.0)
-		{			
-			printf("thread<%d>,time<%lf>,socket<%d>, clients<%d>, recv<%d>, msg<%d>\n",_cellServers.size(), t1, _sock, (int)_clientCount, (int)(_recvCount/t1), (int)(_msgCount / t1));
-			_tTime.update();
-			_recvCount = 0;
-			_msgCount = 0;
-		}		
-	}
 	//只被一个线程触发 安全
 	virtual void OnNetJoin(CellClient* pClient)
 	{
@@ -288,6 +239,59 @@ public:
 	{
 		_recvCount++;
 	}
+private:
+	//处理网络消息
+	void OnRun(CELLThread* pThread)
+	{
+		while (pThread->isRun())
+		{
+			time4msg();
+			//伯克利套接字 BSDsocket
+			fd_set fdRead;//描述符（socket）集合
+			//fd_set fdWrite;
+			//fd_set fdExp;
+			//集合计数清零
+			FD_ZERO(&fdRead);
+			//FD_ZERO(&fdWrite);
+			//FD_ZERO(&fdExp);
+			//将服务端socket加入集合
+			FD_SET(_sock, &fdRead);
+			//FD_SET(_sock, &fdWrite);
+			//FD_SET(_sock, &fdExp);
+
+			//nfds 是一个整数值 是指fd_set集合中所有描述符（socket）的范围，而不是数量，
+			//既是所有文件描述符最大值+1 在windows中这个参数可以写0
+			//select最后一个参数是null，是阻塞模式（有数据可操作的时候才返回），纯接收数据的服务可以接受
+			timeval t = { 0, 1 };//查询时间为1 最大查询时间为1并非等待1s 非阻塞网络模型  综合性网络程序
+			int ret = select(_sock + 1, &fdRead, 0, 0, &t);
+			if (ret < 0)
+			{
+				printf("EasyTcpServer.OnRun select Error exit.\n");
+				pThread->Exit();
+				break;
+			}
+			//判断描述符是否在集合中
+			if (FD_ISSET(_sock, &fdRead))
+			{
+				FD_CLR(_sock, &fdRead);
+				AcceptClient();
+			}
+		}
+	}
+
+	//计数并输出每秒收到的网络消息
+	void time4msg()
+	{
+		auto t1 = _tTime.getElapsedSecond();
+		if (t1 >= 1.0)
+		{
+			printf("thread<%d>,time<%lf>,socket<%d>, clients<%d>, recv<%d>, msg<%d>\n", _cellServers.size(), t1, _sock, (int)_clientCount, (int)(_recvCount / t1), (int)(_msgCount / t1));
+			_tTime.update();
+			_recvCount = 0;
+			_msgCount = 0;
+		}
+	}
+
 };
 
 #endif // _EasyTcpServer_hpp_

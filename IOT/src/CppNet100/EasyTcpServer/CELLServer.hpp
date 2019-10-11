@@ -34,14 +34,10 @@ public:
 	//关闭socket
 	void CloseSocket()
 	{
-		if (_isRun)
-		{
-			printf("CellServer%d.CloseSocket exit begin\n", _id);
-			_taskServer.Close();
-			_isRun = false;//上一句是阻塞的，所以必须放到其后面，不然onrun早早已退出
-			_sem.wait();
-			printf("CellServer%d.CloseSocket exit end\n", _id);
-		}
+		printf("CellServer%d.CloseSocket exit begin\n", _id);
+		_taskServer.Close();
+		_thread.Close();
+		printf("CellServer%d.CloseSocket exit end\n", _id);
 	}
 
 	//判断是否工作中
@@ -50,9 +46,9 @@ public:
 	//	return _sock != INVALID_SOCKET;
 	//}
 	//处理网络消息
-	void OnRun()
+	void OnRun(CELLThread* pThread)
 	{
-		while (_isRun)
+		while (pThread->isRun())
 		{
 			if (!_clientsBuff.empty())
 			{
@@ -123,9 +119,9 @@ public:
 			int ret = select(_maxSock + 1, &fdRead, nullptr, nullptr, &t);
 			if (ret < 0)
 			{
-				printf("select任务结束。\n");
-				CloseSocket();
-				return;
+				printf("CellServer%d.OnRun.select Error exit\n", _id);
+				pThread->Exit();
+				break;
 			}
 			//else if (ret == 0)
 			//{
@@ -135,8 +131,6 @@ public:
 			CheckTime();
 		}
 		printf("CellServer%d.OnRun exit\n", _id);
-		ClearClients();
-		_sem.wakeup();
 	}
 	
 	void CheckTime()
@@ -274,13 +268,19 @@ public:
 
 	void Start()
 	{
-		if (!_isRun)
-		{
-			_isRun = true;
-			std::thread t = std::thread(std::mem_fn(&CellServer::OnRun), this);
-			t.detach();
-			_taskServer.Start();
-		}
+		_taskServer.Start();
+		_thread.Start(
+			//onCreate
+			nullptr, 
+			//onRun
+			[this](CELLThread* pThread) {
+					OnRun(pThread);
+				},
+			//OnDestroy
+			[this](CELLThread* pThread) {
+					ClearClients();
+				}
+		);		
 	}
 
 	size_t getClientCount()
@@ -328,13 +328,10 @@ private:
 	//旧的时间戳
 	time_t _oldTime = CELLTime::getNowInMilliSec();
 	//
-	CELLSemaphore _sem;
+	CELLThread _thread;
 	//
 	int _id = -1;
 	//客户列表是否有变化
 	bool _clients_change;
-	//是否工作中
-	bool _isRun = false;
-
 };
 #endif // !_CELL_SERVER_HPP

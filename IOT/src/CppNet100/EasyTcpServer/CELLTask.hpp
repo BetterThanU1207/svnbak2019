@@ -6,7 +6,7 @@
 #include <list>
 #include <functional>//mem_fun 安全转换
 
-#include "CELLSemaphore.hpp"
+#include "CELLThread.hpp"
 
 //执行任务的服务类型
 class CellTaskServer 
@@ -24,9 +24,7 @@ private:
 	//改变数据缓冲区时需要加锁
 	std::mutex _mutex;
 	//
-	bool _isRun = false;
-	//
-	CELLSemaphore _sem;
+	CELLThread _thread;
 public:
 	//添加任务
 	void addTask(CellTask task)
@@ -37,27 +35,21 @@ public:
 	//启动工作线程
 	void Start()
 	{
-		_isRun = true;
-		//线程
-		std::thread t(std::mem_fn(&CellTaskServer::OnRun), this);
-		t.detach();
+		_thread.Start(nullptr, [this](CELLThread* pThread) {
+			OnRun(pThread);
+			});
 	}
 	void Close()
 	{
-		if (_isRun)
-		{
 			printf("CellTaskServer%d.Close begin\n", serverId);
-			_isRun = false;
-			_sem.wait();
+			_thread.Close();
 			printf("CellTaskServer%d.Close end\n", serverId);
-		}
-
 	}
 protected:
 	//工作函数
-	void OnRun()
+	void OnRun(CELLThread* pThread)
 	{
-		while (_isRun)
+		while (pThread->isRun())
 		{
 			//从缓冲区取出数据
 			if (!_tasksBuf.empty())
@@ -85,7 +77,6 @@ protected:
 			_tasks.clear();
 		}
 		printf("CellTaskServer%d.OnRun exit\n", serverId);
-		_sem.wakeup();
 	}
 };
 #endif // !_CELL_TASK_H_
