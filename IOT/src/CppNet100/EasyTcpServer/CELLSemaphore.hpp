@@ -1,12 +1,12 @@
-#ifndef _CELL_SEMAPORE_HPP_
+ï»¿#ifndef _CELL_SEMAPORE_HPP_
 #define _CELL_SEMAPORE_HPP_
 
 #include <chrono>
 #include <thread>
-//Ìõ¼ş±äÁ¿
+//æ¡ä»¶å˜é‡
 #include <condition_variable>
 
-// ĞÅºÅÁ¿
+// ä¿¡å·é‡
 class CELLSemaphore
 {
 public:
@@ -15,7 +15,7 @@ public:
 		std::unique_lock<std::mutex> lock(_mutex);
 		if (--_wait < 0)
 		{
-			//×èÈûµÈ´ı
+			//é˜»å¡ç­‰å¾…
 			_cv.wait(lock, [this]()->bool {
 				return _wakeup > 0;
 				});
@@ -33,13 +33,13 @@ public:
 	}
 private:
 	std::mutex _mutex;
-	//×èÈûµÈ´ı-Ìõ¼ş±äÁ¿
+	//é˜»å¡ç­‰å¾…-æ¡ä»¶å˜é‡
 	std::condition_variable _cv;
-	//µÈ´ı¼ÆÊı
+	//ç­‰å¾…è®¡æ•°
 	int _wait = 0;
-	//»½ĞÑ¼ÆÊı
+	//å”¤é†’è®¡æ•°
 	int _wakeup = 0;
 };
 #endif // !_CELL_SEMAPORE_HPP_
 
-//Ğé¼Ù»½ĞÑ
+//è™šå‡å”¤é†’

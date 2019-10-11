@@ -1,17 +1,17 @@
-#ifndef _CELL_HPP_
+ï»¿#ifndef _CELL_HPP_
 #define _CELL_HPP_
 
-//SOCKETÏà¹Ø¿çÆ½Ì¨Í·ÎÄ¼ş
+//SOCKETç›¸å…³è·¨å¹³å°å¤´æ–‡ä»¶
 #ifdef _WIN32
-		#define FD_SETSIZE			2506//Í»ÆÆwindowsÏÂselect64¸öµÄÏŞÖÆ
-		#define WIN32_LEAN_AND_MEAN	//±ÜÃâÒıÓÃÔçÆÚµÄwindows¿â
-		#define _WINSOCK_DEPRECATED_NO_WARNINGS	//±ÜÃâ²»ÄÜÊ¹ÓÃsocketµÄ¾Éº¯Êı³öÏÖ´íÎó
-		#include <WS2tcpip.h>	//socketµÄĞÂº¯ÊıÍ·ÎÄ¼ş
+		#define FD_SETSIZE			2506//çªç ´windowsä¸‹select64ä¸ªçš„é™åˆ¶
+		#define WIN32_LEAN_AND_MEAN	//é¿å…å¼•ç”¨æ—©æœŸçš„windowsåº“
+		#define _WINSOCK_DEPRECATED_NO_WARNINGS	//é¿å…ä¸èƒ½ä½¿ç”¨socketçš„æ—§å‡½æ•°å‡ºç°é”™è¯¯
+		#include <WS2tcpip.h>	//socketçš„æ–°å‡½æ•°å¤´æ–‡ä»¶
 		#include <windows.h>
 		#include <WinSock2.h>
 		#pragma comment(lib, "ws2_32.lib")
 #else
-		#include <unistd.h>//uni std unixÏµÍ³ÏÂµÄ±ê×¼¿â
+		#include <unistd.h>//uni std unixç³»ç»Ÿä¸‹çš„æ ‡å‡†åº“
 		#include<arpa/inet.h>
 		#include <string.h>
 
@@ -20,14 +20,14 @@
 		#define  SOCKET_ERRROR						(-1)
 #endif 
 
-//×Ô¶¨Òå
+//è‡ªå®šä¹‰
 #include "MessageHeader.hpp"
 #include "CELLTimestamp.hpp"
 #include "CELLTask.hpp"
 //
 #include <stdio.h>
 
-//»º³åÇø×îĞ¡µ¥Ôª´óĞ¡
+//ç¼“å†²åŒºæœ€å°å•å…ƒå¤§å°
 #ifndef RECV_BUFF_SIZE
 #define RECV_BUFF_SIZE 10240
 #define SEND_BUFF_SIZE RECV_BUFF_SIZE

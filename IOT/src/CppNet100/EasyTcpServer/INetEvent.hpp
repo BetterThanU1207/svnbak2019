@@ -1,22 +1,22 @@
-#ifndef _I_NET_EVENT_HPP_
+ï»¿#ifndef _I_NET_EVENT_HPP_
 #define _I_NET_EVENT_HPP_
 
 #include "CELL.hpp"
 #include "CELLClient.hpp"
 
-//ÎªINetEvent::OnNetMsgµÄÊ¹ÓÃ×öÇ°ÖÃÉùÃ÷  Á½¸öÀà»¥ÏàÇ¶Ì×Ö»ÄÜÊ¹ÓÃÇ°ÖÃÉùÃ÷
+//ä¸ºINetEvent::OnNetMsgçš„ä½¿ç”¨åšå‰ç½®å£°æ˜  ä¸¤ä¸ªç±»äº’ç›¸åµŒå¥—åªèƒ½ä½¿ç”¨å‰ç½®å£°æ˜
 class CellServer;
-//ÍøÂçÊÂ¼ş½Ó¿Ú
+//ç½‘ç»œäº‹ä»¶æ¥å£
 class INetEvent
 {
 public:
-	//¿Í»§¶Ë¼ÓÈëÊÂ¼ş
+	//å®¢æˆ·ç«¯åŠ å…¥äº‹ä»¶
 	virtual void OnNetJoin(CellClient* pClient) = 0;
-	//¿Í»§¶ËÀë¿ªÊÂ¼ş
-	virtual void OnNetLeave(CellClient* pClient) = 0;//´¿Ğéº¯Êı
-	//¿Í»§¶ËÏûÏ¢ÊÂ¼ş
+	//å®¢æˆ·ç«¯ç¦»å¼€äº‹ä»¶
+	virtual void OnNetLeave(CellClient* pClient) = 0;//çº¯è™šå‡½æ•°
+	//å®¢æˆ·ç«¯æ¶ˆæ¯äº‹ä»¶
 	virtual void OnNetMsg(CellServer* pCellServer, CellClient* pClient, netmsg_DataHeader* header) = 0;
-	//recvÊÂ¼ş
+	//recväº‹ä»¶
 	virtual void OnNetRecv(CellClient* pClient) = 0;
 private:
 

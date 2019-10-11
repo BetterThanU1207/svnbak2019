@@ -1,4 +1,4 @@
-#include "EasyTcpServer.hpp"
+ï»¿#include "EasyTcpServer.hpp"
 #include <thread>
 
 //bool g_bRun = true;
@@ -6,18 +6,18 @@
 //{
 //	while (true)
 //	{
-//		// 3 ÊäÈëÇëÇó
+//		// 3 è¾“å…¥è¯·æ±‚
 //		char cmdBuf[256] = {};
 //		scanf_s("%s", cmdBuf, 256);
-//		// 4 ´¦ÀíÇëÇó
+//		// 4 å¤„ç†è¯·æ±‚
 //		if (0 == strcmp(cmdBuf, "exit"))
 //		{
 //			g_bRun = false;
-//			printf("ÍË³öcmdThreadÏß³Ì¡£\n");
+//			printf("é€€å‡ºcmdThreadçº¿ç¨‹ã€‚\n");
 //			break;
 //		}
 //		else {
-//			printf("²»Ö§³ÖµÄÃüÁî¡£\n");
+//			printf("ä¸æ”¯æŒçš„å‘½ä»¤ã€‚\n");
 //		}
 //	}
 //}
@@ -25,19 +25,19 @@
 class MyServer : public EasyTcpServer
 {
 public:
-	//Ö»»á±»Ò»¸öÏß³Ì´¥·¢ °²È«
+	//åªä¼šè¢«ä¸€ä¸ªçº¿ç¨‹è§¦å‘ å®‰å…¨
 	virtual void OnNetJoin(CellClient* pClient)
 	{
 		EasyTcpServer::OnNetJoin(pClient);
 	}
-	//cellServer 4 ¶à¸öÏß³Ì´¥·¢ ²»°²È«
-	//Èç¹ûÖ»¿ªÆô1¸öcellServer¾ÍÊÇ°²È«µÄ
+	//cellServer 4 å¤šä¸ªçº¿ç¨‹è§¦å‘ ä¸å®‰å…¨
+	//å¦‚æœåªå¼€å¯1ä¸ªcellServerå°±æ˜¯å®‰å…¨çš„
 	virtual void OnNetLeave(CellClient* pClient)
 	{
 		EasyTcpServer::OnNetLeave(pClient);
 	}
-	//cellServer 4 ¶à¸öÏß³Ì´¥·¢ ²»°²È«
-	//Èç¹ûÖ»¿ªÆô1¸öcellServer¾ÍÊÇ°²È«µÄ
+	//cellServer 4 å¤šä¸ªçº¿ç¨‹è§¦å‘ ä¸å®‰å…¨
+	//å¦‚æœåªå¼€å¯1ä¸ªcellServerå°±æ˜¯å®‰å…¨çš„
 	virtual void OnNetMsg(CellServer* pCellServer, CellClient* pClient, netmsg_DataHeader* header)
 	{
 		EasyTcpServer::OnNetMsg(pCellServer, pClient, header);
@@ -47,11 +47,11 @@ public:
 		{
 			pClient->resetDTHeart();
 			netmsg_Login* login = (netmsg_Login*)header;
-			//printf("ÊÕµ½¿Í»§¶Ë<Socket=%d>ÇëÇó£ºCMD_LOGIN,Êı¾İ³¤¶È£º%d,userName=%s PassWord=%s\n", cSock, login->dataLength, login->userName, login->PassWord);
-			//ºöÂÔÅĞ¶ÏÓÃ»§ÃÜÂëÊÇ·ñÕıÈ·µÄ¹ı³Ì
+			//printf("recv <Socket=%d> msgTypeï¼šCMD_LOGIN, dataLenï¼š%d,userName=%s PassWord=%s\n", cSock, login->dataLength, login->userName, login->PassWord);
+			//å¿½ç•¥åˆ¤æ–­ç”¨æˆ·å¯†ç æ˜¯å¦æ­£ç¡®çš„è¿‡ç¨‹
 			netmsg_LoginR ret;
 			pClient->SendData(&ret);
-			//ÏÈ²»Ê¹ÓÃÈÎÎñÏµÍ³
+			//å…ˆä¸ä½¿ç”¨ä»»åŠ¡ç³»ç»Ÿ
 			//netmsg_LoginR* ret = new netmsg_LoginR();
 			//pCellServer->addSendTask(pClient, ret);
 		}
@@ -59,8 +59,8 @@ public:
 		case CMD_LOGOUT:
 		{
 			netmsg_Logout* logout = (netmsg_Logout*)header;
-			//printf("ÊÕµ½¿Í»§¶Ë<Socket=%d>ÇëÇó£ºCMD_LOGOUT,Êı¾İ³¤¶È£º%d,userName=%s \n", cSock, logout->dataLength, logout->userName);
-			//ºöÂÔÅĞ¶ÏÓÃ»§ÃÜÂëÊÇ·ñÕıÈ·µÄ¹ı³Ì
+			//printf("recv <Socket=%d> msgTypeï¼šCMD_LOGOUT, dataLenï¼š%d,userName=%s \n", cSock, logout->dataLength, logout->userName);
+			//å¿½ç•¥åˆ¤æ–­ç”¨æˆ·å¯†ç æ˜¯å¦æ­£ç¡®çš„è¿‡ç¨‹
 			//netmsg_LogoutR ret;
 			//SendData(cSock, &ret);
 		}
@@ -74,9 +74,7 @@ public:
 		break;
 		default:
 		{
-			printf("<socket=%d>ÊÕµ½Î´¶¨ÒåÏûÏ¢,Êı¾İ³¤¶È£º%d\n", pClient->sockfd(), header->dataLength);
-			//netmsg_DataHeader ret;
-			//SendData(cSock, &ret);
+			printf("recv <socket=%d> undefine msgType,dataLenï¼š%d\n", pClient->sockfd(), header->dataLength);
 		}
 		break;
 		}
@@ -87,41 +85,34 @@ private:
 
 int main()
 {
-	
 	MyServer server;
 	server.InitSocket();
 	server.BindPort(nullptr, 4567);
 	server.ListenPort(5);
 	server.Start(4);
-	//Æô¶¯Ïß³Ì
+	//å¯åŠ¨çº¿ç¨‹
 	//std::thread t1(cmdThread);
-	//t1.detach();//ÓëÖ÷Ïß³Ì·ÖÀë
+	//t1.detach();//ä¸ä¸»çº¿ç¨‹åˆ†ç¦»
 	while (true)//server.isRun()
 	{
-		// 3 ÊäÈëÇëÇó
+		// 3 è¾“å…¥è¯·æ±‚
 		char cmdBuf[256] = {};
 		scanf_s("%s", cmdBuf, 256);
-		// 4 ´¦ÀíÇëÇó
+		// 4 å¤„ç†è¯·æ±‚
 		if (0 == strcmp(cmdBuf, "exit"))
 		{
 			server.CloseSocket();
-			printf("ÍË³öcmdThreadÏß³Ì¡£\n");
 			break;
 		}
 		else {
-			printf("²»Ö§³ÖµÄÃüÁî¡£\n");
+			printf("undefine cmd\n");
 		}
 	}
-	printf("ÒÑÍË³ö£¬ÈÎÎñ½áÊø¡£\n");
-	
-	//CellTaskServer task;
-	//task.Start();
-	//Sleep(100);
-	//task.Close();
+
+	printf("exit.\n");
+#ifdef _WIN32
 	while (true)
-	{
-		Sleep(1);
-	}
-	getchar();
+		Sleep(10);
+#endif
 	return 0;
 }
