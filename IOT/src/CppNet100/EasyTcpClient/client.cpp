@@ -54,10 +54,13 @@ std::atomic_int readyCount = 0;
 
 void recvThread(int begin, int end)
 {
+	//CELLTimestamp t;
 	while (g_bRun)
 	{
 		for (int n = begin; n < end; n++)
 		{
+			//if (t.getElapsedSecond() > 3.0 && n == begin)
+			//	continue;
 			client[n]->OnRun();
 		}
 	}

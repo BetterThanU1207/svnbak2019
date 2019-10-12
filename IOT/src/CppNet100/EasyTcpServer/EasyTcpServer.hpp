@@ -128,7 +128,7 @@ public:
 			printf("error, listen socket<%d> failed...\n",_sock);
 		}
 		else {
-			printf("listen port<%d> success...\n", _sock);
+			printf("listen socket<%d> success...\n", _sock);
 		}
 		return ret;
 	}

@@ -50,7 +50,11 @@ public:
 			//printf("recv <Socket=%d> msgType：CMD_LOGIN, dataLen：%d,userName=%s PassWord=%s\n", cSock, login->dataLength, login->userName, login->PassWord);
 			//忽略判断用户密码是否正确的过程
 			netmsg_LoginR ret;
-			pClient->SendData(&ret);
+			if (SOCKET_ERROR == pClient->SendData(&ret))
+			{
+				//发送缓冲区满了，消息没发出去
+				printf("recv <Socket=%d> msgType：Send Full\n", pClient->sockfd());
+			}
 			//先不使用任务系统
 			//netmsg_LoginR* ret = new netmsg_LoginR();
 			//pCellServer->addSendTask(pClient, ret);
