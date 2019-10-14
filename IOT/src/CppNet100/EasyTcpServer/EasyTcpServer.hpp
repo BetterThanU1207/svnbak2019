@@ -57,6 +57,14 @@ public:
 		WSADATA data;
 		WSAStartup(ver, &data);
 #endif
+//
+#ifndef _WIN32
+		//if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
+		//	return (1);
+		//网络通讯某一端（s或c）断开，会触发该信号，该信号默认是终止进程
+		//忽略异常信号，默认情况会导致进程终止
+		signal(SIGPIPE, SIG_IGN);
+#endif
 		//-- 用socket api 建立简易TCP客户端
 		// 1 建立一个socket;Ipv4，面向数据流，TCP协议
 		if (INVALID_SOCKET != _sock)

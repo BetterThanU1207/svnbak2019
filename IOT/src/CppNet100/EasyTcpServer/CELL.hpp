@@ -14,6 +14,7 @@
 		#include <unistd.h>//uni std unix系统下的标准库
 		#include<arpa/inet.h>
 		#include <string.h>
+		#include <signal.h>
 
 		#define  SOCKET int
 		#define  INVALID_SOCKET		(SOCKET)(~0)

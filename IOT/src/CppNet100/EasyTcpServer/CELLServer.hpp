@@ -198,9 +198,9 @@ public:
 #else
 		for (auto iter = _clients.begin(); iter != _clients.end(); )
 		{
-			if (FD_ISSET(iter->second->sockfd(), &fdRead))
+			if (FD_ISSET(iter->second->sockfd(), &fdWrite))
 			{
-				if (-1 == RecvData(iter->second))
+				if (-1 == iter->second->SendDataReal())
 				{
 					OnClientLeave(iter->second);
 					auto iterOld = iter;
@@ -252,44 +252,20 @@ public:
 	//接收数据 处理粘包 拆分包
 	int RecvData(CellClient* pClient)
 	{
-		char* szRecv = pClient->msgBuf() + pClient->getLastPos();
-		// 5 接收数据
-		int nLen = (int)recv(pClient->sockfd(), szRecv, RECV_BUFF_SIZE - pClient->getLastPos(), 0);
-		_pNetEvent->OnNetRecv(pClient);
+		int nLen = pClient->RecvData();		
 		if (nLen <= 0)
 		{
-			//printf("客户端<Socket=%d>已退出，任务结束。\n", pClient->sockfd());
 			return -1;
 		}
-		//来任何消息都认为心跳了
-		//pClient->resetDTHeart();
-		//将收取的数据拷贝到消息缓冲区
-		//memcpy(pClient->msgBuf() + pClient->getLastPos(), _szRecv, nLen);
-		//消息缓冲区的数据尾部位置后移
-		pClient->setLastPos(pClient->getLastPos() + nLen);
-		//判断消息缓冲区的数据长度是否大于消息头netmsg_DataHeader长度		
-		//积压消息够多有可能会阻塞
-		while (pClient->getLastPos() >= sizeof(netmsg_DataHeader))//循环解决粘包
+		//触发<接收到网络数据>事件
+		_pNetEvent->OnNetRecv(pClient);
+		//循环 判断是否有消息需要处理
+		while (pClient->hasMsg())//循环解决粘包
 		{
-			//这是就可以知道当前消息的长度
-			netmsg_DataHeader* header = (netmsg_DataHeader*)pClient->msgBuf();
-			//判断消息缓冲区的数据长度大于消息长度		
-			if (pClient->getLastPos() >= header->dataLength)//判断解决少包   也可可能两者相等，那nSize=0
-			{
-				//消息缓冲区剩余未处理数据的长度   需要提前保存下来
-				int nSize = pClient->getLastPos() - header->dataLength;//从接受缓冲区多取过来的一部分
-				//处理网络消息
-				OnNetMsg(pClient, header);//header被处理过后其中header被强制转换和位移已经改变
-				//将消息缓冲区剩余未处理数据前移
-				memcpy(pClient->msgBuf(), pClient->msgBuf() + header->dataLength, nSize);
-				//消息缓冲区的数据尾部位置前移
-				pClient->setLastPos(nSize);
-			}
-			else
-			{
-				//消息缓冲区剩余数据不够一条完整消息
-				break;
-			}
+			//处理网络消息
+			OnNetMsg(pClient, pClient->front_msg());//header被处理过后其中header被强制转换和位移已经改变
+			//移除消息队列（缓冲区）最前的一条数据
+			pClient->pop_front_msg();
 		}
 		return 0;
 	}
