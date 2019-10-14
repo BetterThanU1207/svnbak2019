@@ -12,6 +12,7 @@
 #include "CELLClient.hpp"
 #include "CELLServer.hpp"
 #include "INetEvent.hpp"
+#include "CELLNetWork.hpp"
 
 //new 堆内存，直接声明的对象在栈上面
 class EasyTcpServer : public INetEvent
@@ -51,21 +52,7 @@ public:
 	//初始化socket
 	SOCKET InitSocket()
 	{
-#ifdef _WIN32
-		//启动windows socket 2.x环境
-		WORD ver = MAKEWORD(2, 2);
-		WSADATA data;
-		WSAStartup(ver, &data);
-#endif
-//
-#ifndef _WIN32
-		//if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
-		//	return (1);
-		//网络通讯某一端（s或c）断开，会触发该信号，该信号默认是终止进程
-		//忽略异常信号，默认情况会导致进程终止
-		signal(SIGPIPE, SIG_IGN);
-#endif
-		//-- 用socket api 建立简易TCP客户端
+		CELLNetWork::Init();
 		// 1 建立一个socket;Ipv4，面向数据流，TCP协议
 		if (INVALID_SOCKET != _sock)
 		{
@@ -212,11 +199,8 @@ public:
 			}
 			_cellServers.clear();
 			//closesocket 关闭套接字
-#ifdef _WIN32
-			
+#ifdef _WIN32			
 			closesocket(_sock);
-			//清除windows socket环境
-			WSACleanup();
 #else
 			close(_sock);
 #endif
