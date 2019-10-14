@@ -7,6 +7,7 @@
 #include <functional>//mem_fun 安全转换
 
 #include "CELLThread.hpp"
+//#include "CELLLog.hpp"
 
 //执行任务的服务类型
 class CellTaskServer 
@@ -41,9 +42,9 @@ public:
 	}
 	void Close()
 	{
-			printf("CellTaskServer%d.Close begin\n", serverId);
+			//CELLLog::Info("CellTaskServer%d.Close begin\n", serverId);
 			_thread.Close();
-			printf("CellTaskServer%d.Close end\n", serverId);
+			//CELLLog::Info("CellTaskServer%d.Close end\n", serverId);
 	}
 protected:
 	//工作函数
@@ -76,7 +77,12 @@ protected:
 			//清空任务
 			_tasks.clear();
 		}
-		printf("CellTaskServer%d.OnRun exit\n", serverId);
+		//处理缓冲队里中的任务
+		for (auto pTask : _tasksBuf)
+		{ 
+			pTask();
+		}
+		//CELLLog::Info("CellTaskServer%d.OnRun exit\n", serverId);
 	}
 };
 #endif // !_CELL_TASK_H_

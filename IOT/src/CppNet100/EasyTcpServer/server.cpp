@@ -13,11 +13,11 @@
 //		if (0 == strcmp(cmdBuf, "exit"))
 //		{
 //			g_bRun = false;
-//			printf("退出cmdThread线程。\n");
+//			CELLLog::Info("退出cmdThread线程。\n");
 //			break;
 //		}
 //		else {
-//			printf("不支持的命令。\n");
+//			CELLLog::Info("不支持的命令。\n");
 //		}
 //	}
 //}
@@ -47,13 +47,13 @@ public:
 		{
 			pClient->resetDTHeart();
 			netmsg_Login* login = (netmsg_Login*)header;
-			//printf("recv <Socket=%d> msgType：CMD_LOGIN, dataLen：%d,userName=%s PassWord=%s\n", cSock, login->dataLength, login->userName, login->PassWord);
+			//CELLLog::Info("recv <Socket=%d> msgType：CMD_LOGIN, dataLen：%d,userName=%s PassWord=%s\n", cSock, login->dataLength, login->userName, login->PassWord);
 			//忽略判断用户密码是否正确的过程
 			netmsg_LoginR ret;
 			if (SOCKET_ERROR == pClient->SendData(&ret))
 			{
 				//发送缓冲区满了，消息没发出去
-				printf("recv <Socket=%d> msgType：Send Full\n", pClient->sockfd());
+				CELLLog::Info("recv <Socket=%d> msgType：Send Full\n", pClient->sockfd());
 			}
 			//先不使用任务系统
 			//netmsg_LoginR* ret = new netmsg_LoginR();
@@ -63,7 +63,7 @@ public:
 		case CMD_LOGOUT:
 		{
 			netmsg_Logout* logout = (netmsg_Logout*)header;
-			//printf("recv <Socket=%d> msgType：CMD_LOGOUT, dataLen：%d,userName=%s \n", cSock, logout->dataLength, logout->userName);
+			//CELLLog::Info("recv <Socket=%d> msgType：CMD_LOGOUT, dataLen：%d,userName=%s \n", cSock, logout->dataLength, logout->userName);
 			//忽略判断用户密码是否正确的过程
 			//netmsg_LogoutR ret;
 			//SendData(cSock, &ret);
@@ -78,7 +78,7 @@ public:
 		break;
 		default:
 		{
-			printf("recv <socket=%d> undefine msgType,dataLen：%d\n", pClient->sockfd(), header->dataLength);
+			CELLLog::Info("recv <socket=%d> undefine msgType,dataLen：%d\n", pClient->sockfd(), header->dataLength);
 		}
 		break;
 		}
@@ -89,6 +89,7 @@ private:
 
 int main()
 {
+	CELLLog::Instance().setLogPath("serverLog.txt", "w");
 	MyServer server;
 	server.InitSocket();
 	server.BindPort(nullptr, 4567);
@@ -109,11 +110,11 @@ int main()
 			break;
 		}
 		else {
-			printf("undefine cmd\n");
+			CELLLog::Info("undefine cmd\n");
 		}
 	}
 
-	printf("exit.\n");
+	CELLLog::Info("exit.\n");
 #ifdef _WIN32
 	while (true)
 		Sleep(10);

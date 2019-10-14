@@ -21,9 +21,9 @@ public:
 	}
 	~CellServer()
 	{
-		printf("CellServer%d.~CellServer exit begin 1\n", _id);
+		CELLLog::Info("CellServer%d.~CellServer exit begin 1\n", _id);
 		CloseSocket();		
-		printf("CellServer%d.~CellServer exit end 1\n", _id);
+		CELLLog::Info("CellServer%d.~CellServer exit end 1\n", _id);
 	}
 
 	void setEventObj(INetEvent* event)
@@ -34,10 +34,10 @@ public:
 	//关闭socket
 	void CloseSocket()
 	{
-		printf("CellServer%d.CloseSocket exit begin\n", _id);
+		CELLLog::Info("CellServer%d.CloseSocket exit begin\n", _id);
 		_taskServer.Close();
 		_thread.Close();
-		printf("CellServer%d.CloseSocket exit end\n", _id);
+		CELLLog::Info("CellServer%d.CloseSocket exit end\n", _id);
 	}
 
 	//判断是否工作中
@@ -120,7 +120,7 @@ public:
 			int ret = select(_maxSock + 1, &fdRead, &fdWrite, nullptr, &t);
 			if (ret < 0)
 			{
-				printf("CellServer%d.OnRun.select Error exit\n", _id);
+				CELLLog::Info("CellServer%d.OnRun.select Error exit\n", _id);
 				pThread->Exit();
 				break;
 			}
@@ -131,16 +131,16 @@ public:
 			ReadData(fdRead);
 			WriteData(fdWrite);
 			//WriteData(fdExc);//也可用ReadData
-			//printf("CellServer%d.OnRun select fdRead=%d\n", _id, fdRead.fd_count);
-			//printf("CellServer%d.OnRun select fdWrite=%d\n", _id, fdWrite.fd_count);
+			//CELLLog::Info("CellServer%d.OnRun select fdRead=%d\n", _id, fdRead.fd_count);
+			//CELLLog::Info("CellServer%d.OnRun select fdWrite=%d\n", _id, fdWrite.fd_count);
 			//if (fdExc.fd_count > 0)
 			//{
-			//	printf("###CellServer%d.OnRun select fdExc=%d\n", _id, fdExc.fd_count);
+			//	CELLLog::Info("###CellServer%d.OnRun select fdExc=%d\n", _id, fdExc.fd_count);
 			//}
 			
 			CheckTime();
 		}
-		printf("CellServer%d.OnRun exit\n", _id);
+		CELLLog::Info("CellServer%d.OnRun exit\n", _id);
 	}
 	
 	void CheckTime()
