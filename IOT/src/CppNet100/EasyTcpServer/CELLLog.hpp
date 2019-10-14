@@ -1,9 +1,9 @@
-#ifndef _CELL_LOG_HPP_
+ï»¿#ifndef _CELL_LOG_HPP_
 #define _CELL_LOG_HPP_
 
 #include "CELL.hpp"
 #include <ctime>
-#pragma warning( disable : 4996 )	//½â¾öfopen_s£¬ gmtime_sµÈ°²È«ÐÔÎÊÌâ¼ì²é
+#pragma warning( disable : 4996 )	//è§£å†³fopen_sï¼Œ gmtime_sç­‰å®‰å…¨æ€§é—®é¢˜æ£€æŸ¥
 class CELLLog
 {
 private:
@@ -37,7 +37,7 @@ public:
 			fclose(_logFile);
 			_logFile = nullptr;
 		}
-		//fopen_s(&_logFile, logPath, mode);//³ÌÐòÔËÐÐÖÐ²»ÄÜ¹»´ò¿ªÎÄ¼þ
+		//fopen_s(&_logFile, logPath, mode);//ç¨‹åºè¿è¡Œä¸­ä¸èƒ½å¤Ÿæ‰“å¼€æ–‡ä»¶
 		_logFile = fopen(logPath, mode);
 		if (_logFile)
 		{
@@ -56,7 +56,7 @@ public:
 	static void Info(const char* pStr)
 	{
 		CELLLog* pLog = &Instance();
-		//·ÅÈëÁíÒ»¸öÏß³Ì
+		//æ”¾å…¥å¦ä¸€ä¸ªçº¿ç¨‹
 		pLog->_taskServer.addTask([pLog, pStr]() {
 			if (pLog->_logFile)
 			{
@@ -67,7 +67,7 @@ public:
 				fprintf(pLog->_logFile, "[%d-%d-%d %d:%d:%d]---", now->tm_year + 1900, now->tm_mon, now->tm_mday,
 					now->tm_hour + 8, now->tm_min, now->tm_sec);
 				fprintf(pLog->_logFile, "%s", pStr);
-				fflush(pLog->_logFile);//ÊµÊ±Ð´ÈëÎÄ¼þ
+				fflush(pLog->_logFile);//å®žæ—¶å†™å…¥æ–‡ä»¶
 			}
 		}
 		);
@@ -77,7 +77,7 @@ public:
 	static void Info(const char* pFormat,  Args ... args)
 	{
 		CELLLog* pLog = &Instance();
-		//·ÅÈëÁíÒ»¸öÏß³Ì
+		//æ”¾å…¥å¦ä¸€ä¸ªçº¿ç¨‹
 		pLog->_taskServer.addTask( [pLog, pFormat, args...] () {
 				if (pLog->_logFile)
 				{
@@ -88,7 +88,7 @@ public:
 					fprintf(pLog->_logFile, "[%d-%d-%d %d:%d:%d]---", now->tm_year + 1900, now->tm_mon, now->tm_mday,
 						now->tm_hour + 8, now->tm_min, now->tm_sec);
 					fprintf(pLog->_logFile, pFormat, args...);
-					fflush(pLog->_logFile);//ÊµÊ±Ð´ÈëÎÄ¼þ
+					fflush(pLog->_logFile);//å®žæ—¶å†™å…¥æ–‡ä»¶
 				}
 			}
 		);
