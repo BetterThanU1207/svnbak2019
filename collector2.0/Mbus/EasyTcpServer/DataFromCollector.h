@@ -11,10 +11,10 @@ public:
 	DataFromCollector();
 	~DataFromCollector();
 	//传入获取到的原始数据
-	netmsg_DataHeader dataResult(const char* data, unsigned int length);
+	netmsg_DataHeader dataResult(const unsigned char* data, unsigned int length);
 
 private:
-	void Ascii2Hex(const char* data, unsigned int length);
+	void Ascii2Hex(const unsigned char* data, unsigned int length);
 	bool Verify();
 
 private:

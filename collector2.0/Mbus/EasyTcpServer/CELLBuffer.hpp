@@ -81,17 +81,16 @@ public:
 		if (_nSize - _nLast > 0)
 		{
 			//接收客户端数据
-			char* szRecv = _pBuff + _nLast;
-			int nLen = (int)recv(sockfd, szRecv, _nSize - _nLast, 0);
+			unsigned char* szRecv = (unsigned char*)_pBuff + _nLast;
+			int nLen = (int)recv(sockfd, (char*)szRecv, _nSize - _nLast, 0);
 			//----------------解析协议-------------------------	
 			DataFromCollector dataDeal;
 			dataDeal.dataResult(szRecv, nLen);
 			//打印原始数据的十六进制
 			CELLLog::Info("rawData=");
 			for (int i = 0; i< nLen; i++)
-			{
-				CELLLog::Info("%02X", szRecv[i]);		
-				CELLLog::Info("\n");
+			{				
+				CELLLog::Info("%02X", szRecv[i]);
 			}			
 			CELLLog::Info("\n");
 			if (nLen <= 0)
