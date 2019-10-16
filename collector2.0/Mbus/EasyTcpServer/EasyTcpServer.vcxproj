@@ -156,6 +156,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CELLTask.hpp" />
+    <ClCompile Include="DataFromCollector.cpp" />
     <ClCompile Include="server.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -168,6 +169,7 @@
     <ClInclude Include="CELLServer.hpp" />
     <ClInclude Include="CELLThread.hpp" />
     <ClInclude Include="CELLTimestamp.hpp" />
+    <ClInclude Include="DataFromCollector.h" />
     <ClInclude Include="EasyTcpServer.hpp" />
     <ClInclude Include="INetEvent.hpp" />
     <ClInclude Include="MessageHeader.hpp" />

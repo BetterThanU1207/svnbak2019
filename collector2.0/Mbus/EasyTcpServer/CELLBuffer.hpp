@@ -5,6 +5,7 @@
 #define _CELL_BUFFER_HPP_
 
 #include "CELL.hpp"
+#include "DataFromCollector.h"
 
 class CELLBuffer
 {
@@ -83,17 +84,16 @@ public:
 			char* szRecv = _pBuff + _nLast;
 			int nLen = (int)recv(sockfd, szRecv, _nSize - _nLast, 0);
 			//----------------解析协议-------------------------	
-			char* data = nullptr;
+			DataFromCollector dataDeal;
+			dataDeal.dataResult(szRecv, nLen);
+			//打印原始数据的十六进制
+			CELLLog::Info("rawData=");
 			for (int i = 0; i< nLen; i++)
 			{
-				CELLLog::Info("rawData=%02X\n", szRecv[i]);
-				sprintf(data, "%02X", szRecv[i]);
-			}
-			//const char* end = szRecv + nLen;
-			//CELLLog::Show_Memory((unsigned char*)szRecv, (unsigned char*)end);
-
-
-
+				CELLLog::Info("%02X", szRecv[i]);		
+				CELLLog::Info("\n");
+			}			
+			CELLLog::Info("\n");
 			if (nLen <= 0)
 			{
 				return nLen;
