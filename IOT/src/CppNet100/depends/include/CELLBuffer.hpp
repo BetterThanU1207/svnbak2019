@@ -118,6 +118,12 @@ public:
 		return false;
 	}
 
+	bool needWrite()
+	{
+		//缓冲区中有数据，表示需要写（发送）数据
+		return _nLast > 0;
+	}
+
 private:
 	//第二缓冲区 发送缓冲区 动态大小
 	char* _pBuff = nullptr;
