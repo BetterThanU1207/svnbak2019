@@ -22,13 +22,13 @@ public:
 		EasyTcpServer::OnNetMsg(pCellServer, pClient, header);
 		switch (header->cmd)
 		{
-		case CMD_LOGIN:
+		case CMD_DT_SET:
 		{
 			pClient->resetDTHeart();
-			netmsg_Login* login = (netmsg_Login*)header;
+			netmsg_DtSet* login = (netmsg_DtSet*)header;
 			//CELLLog::Info("recv <Socket=%d> msgType：CMD_LOGIN, dataLen：%d,userName=%s PassWord=%s\n", cSock, login->dataLength, login->userName, login->PassWord);
 			//忽略判断用户密码是否正确的过程
-			netmsg_LoginR ret;
+			netmsg_DtSet ret;
 			if (SOCKET_ERROR == pClient->SendData(&ret))
 			{
 				//发送缓冲区满了，消息没发出去
@@ -39,19 +39,10 @@ public:
 			//pCellServer->addSendTask(pClient, ret);
 		}
 		break;
-		case CMD_LOGOUT:
-		{
-			netmsg_Logout* logout = (netmsg_Logout*)header;
-			//CELLLog::Info("recv <Socket=%d> msgType：CMD_LOGOUT, dataLen：%d,userName=%s \n", cSock, logout->dataLength, logout->userName);
-			//忽略判断用户密码是否正确的过程
-			//netmsg_LogoutR ret;
-			//SendData(cSock, &ret);
-		}
-		break;
-		case CMD_C2S_HEART:
+		case CMD_HEART:
 		{
 			pClient->resetDTHeart();
-			netmsg_s2c_Heart ret;
+			netmsg_Heart ret;
 			pClient->SendData(&ret);
 		}
 		break;

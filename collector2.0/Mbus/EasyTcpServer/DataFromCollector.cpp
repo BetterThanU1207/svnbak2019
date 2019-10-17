@@ -20,25 +20,14 @@ void DataFromCollector::Ascii2Hex(const unsigned char* data, unsigned int length
 	{
 		//ASCII转hex
 		sprintf(buf, "%02x", data[i]);
-		/*十六进制字符数组转int
-		char* str;
-		long num = strtol(buf, &str, 16);*/
-		/*处理ASCII不能显示的hex（会多出FFFFFF）
-		string pushStr = buf;
-		if (pushStr.length() == 8)
-		{
-			pushStr = pushStr.substr(6);
-		}*/
 		_hexData.push_back(buf);
 		memset(buf, 0, sizeof(buf));
 	}
 }
 //传入获取到的原始数据
-netmsg_DataHeader DataFromCollector::dataResult(const unsigned char* data, unsigned int length)
+netmsg_DataHeader* DataFromCollector::dataResult(const unsigned char* data, unsigned int length)
 {
 	//格式转换
-	//string dataStr = data;//转换后会导致数据丢失
-	//dataStr = dataStr.substr(0, length);
 	Ascii2Hex(data, length);
 	//验证data
 	if (Verify())
@@ -47,10 +36,8 @@ netmsg_DataHeader DataFromCollector::dataResult(const unsigned char* data, unsig
 	}
 	//解析data
 	//重整data
-	//netmsg_LoginR* header =  new netmsg_LoginR;
-	//header->result = 1;
-	netmsg_LoginR header;
-	header.result = 1;
+	netmsg_DtSet* header =  new netmsg_DtSet;
+	header->result = 1;
 	return header;
 }
 

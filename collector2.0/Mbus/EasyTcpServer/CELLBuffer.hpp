@@ -26,7 +26,7 @@ public:
 
 	char* data()
 	{
-		return _pBuff;
+		return (char*)_changedData;
 	}
 
 	bool push(const char* pData, int nLen)
@@ -85,7 +85,7 @@ public:
 			int nLen = (int)recv(sockfd, (char*)szRecv, _nSize - _nLast, 0);
 			//----------------解析协议-------------------------	
 			DataFromCollector dataDeal;
-			dataDeal.dataResult(szRecv, nLen);
+			_changedData = dataDeal.dataResult(szRecv, nLen);
 			//打印原始数据的十六进制
 			CELLLog::Info("rawData=");
 			for (int i = 0; i< nLen; i++)
@@ -110,7 +110,7 @@ public:
 		if (_nLast >= sizeof(netmsg_DataHeader))//循环解决粘包
 		{
 			//这是就可以知道当前消息的长度
-			netmsg_DataHeader* header = (netmsg_DataHeader*)_pBuff;
+			netmsg_DataHeader* header = _changedData;
 			//判断消息缓冲区的数据长度大于消息长度		
 			return _nLast >= header->dataLength;
 		}
@@ -118,6 +118,8 @@ public:
 	}
 
 private:
+	//缓冲区数据转换
+	netmsg_DataHeader* _changedData;
 	//第二缓冲区 发送缓冲区 动态大小
 	char* _pBuff = nullptr;
 	//可以用链表或者队列来管理缓冲数据块
