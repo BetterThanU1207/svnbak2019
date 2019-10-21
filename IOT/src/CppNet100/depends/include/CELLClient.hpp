@@ -77,21 +77,19 @@ public:
 		return _sendBuff.write2socket(_sockfd);
 	}
 	//缓冲区的控制根据业务需求的差异而调整
-
 	//发送数据
 	int SendData(netmsg_DataHeader* header)
 	{
-		int ret = SOCKET_ERROR;
-		//要发送的数据长度
-		int nSendLen = header->dataLength;
-		//要发送的数据
-		const char* pSendData = (const char*)header;
-		
-		if (_sendBuff.push(pSendData, nSendLen))
-		{		
-			return nSendLen;
+		return SendData((const char*)header, header->dataLength);
+	}
+
+	int SendData(const char* pData, int len)
+	{
+		if (_sendBuff.push(pData, len))
+		{
+			return len;
 		}
-		return ret;
+		return SOCKET_ERROR;
 	}
 
 	void resetDTHeart()

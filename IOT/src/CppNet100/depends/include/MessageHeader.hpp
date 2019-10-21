@@ -1,6 +1,6 @@
 ﻿#ifndef _MessageHeader_hpp_
 #define _MessageHeader_hpp_
-
+//以结构体传输数据
 enum CMD
 {
 	CMD_LOGIN,
@@ -23,6 +23,7 @@ struct netmsg_DataHeader
 	short cmd;
 };
 //DataPackage继承的方式在构造函数中初始化
+//以结构体传输数据
 struct netmsg_Login : public netmsg_DataHeader
 {
 	netmsg_Login()

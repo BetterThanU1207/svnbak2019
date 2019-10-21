@@ -1,26 +1,6 @@
 ﻿#include "EasyTcpServer.hpp"
 #include <thread>
-
-//bool g_bRun = true;
-//void cmdThread()
-//{
-//	while (true)
-//	{
-//		// 3 输入请求
-//		char cmdBuf[256] = {};
-//		scanf_s("%s", cmdBuf, 256);
-//		// 4 处理请求
-//		if (0 == strcmp(cmdBuf, "exit"))
-//		{
-//			g_bRun = false;
-//			CELLLog::Info("退出cmdThread线程。\n");
-//			break;
-//		}
-//		else {
-//			CELLLog::Info("不支持的命令。\n");
-//		}
-//	}
-//}
+#include "CELLMsgStream.hpp"
 
 class MyServer : public EasyTcpServer
 {
@@ -76,8 +56,38 @@ public:
 			pClient->SendData(&ret);
 		}
 		break;
-		default:
+		default:			
 		{
+				CELLRecvMsgStream r(header);
+				//auto n1 = r.ReadInt8();
+				//auto n2 = r.ReadInt16();
+				//auto n3 = r.ReadInt32();
+				//auto n4 = r.ReadFloat();
+				//auto n5 = r.ReadDouble();
+				uint32_t n = 0;
+				r.onlyRead(n);
+				char name[32] = {};
+				auto n6 = r.ReadArray(name, 32);
+				//char pw[32] = {};
+				//auto n7 = r.ReadArray(pw, 32);
+				//int ata[10] = {};
+				//auto n8 = r.ReadArray(ata, 10);
+				///
+				CELLSendMsgStream s(128);
+				s.setNetCmd(100);
+				//s.WriteInt8(1);
+				//s.WriteInt16(2);
+				//s.WriteInt32(3);
+				//s.WriteFloat(4.5f);
+				//s.WriteDouble(6.7);
+
+				s.WriteString("sever");
+				//char a[] = "ahah";
+				//s.WriteArray(a, strlen(a));
+				//int b[] = { 1,2,3,4,5 };
+				//s.WriteArray(b, 5);
+				s.finsh();
+				pClient->SendData(s.data(), s.length());
 			CELLLog::Info("recv <socket=%d> undefine msgType,dataLen：%d\n", pClient->sockfd(), header->dataLength);
 		}
 		break;
