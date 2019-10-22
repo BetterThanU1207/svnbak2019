@@ -107,15 +107,7 @@ public:
 
 	bool hasMsg()
 	{
-		//判断消息缓冲区的数据长度是否大于消息头netmsg_DataHeader长度		
-		if (_nLast >= sizeof(netmsg_DataHeader))//循环解决粘包
-		{
-			//这是就可以知道当前消息的长度
-			netmsg_DataHeader* header = (netmsg_DataHeader*)_pBuff;
-			//判断消息缓冲区的数据长度大于消息长度		
-			return _nLast >= header->dataLength;
-		}
-		return false;
+		return _nLast > 0;
 	}
 
 	bool needWrite()

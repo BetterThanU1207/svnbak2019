@@ -22,7 +22,6 @@
 #endif 
 
 //自定义
-#include "MessageHeader.hpp"
 #include "CELLTimestamp.hpp"
 #include "CELLTask.hpp"
 #include "CELLLog.hpp"

@@ -220,7 +220,7 @@ public:
 		_clientCount--;
 	}
 	//cellserver 4 多个线程触发 不安全 如果只开启一个CellServer就是安全的
-	virtual void OnNetMsg(CellServer* pCellServer, CellClient* pClient, netmsg_DataHeader* header)
+	virtual void OnNetMsg(CellServer* pCellServer, CellClient* pClient, char* pData, int len)
 	{
 		_msgCount++;
 	}

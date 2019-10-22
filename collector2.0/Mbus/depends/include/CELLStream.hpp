@@ -107,7 +107,7 @@ public:
 		uint32_t len1 = 0;
 		//读取数组元素的个数，但不偏移读取位置
 		Read(len1, false);
-		if (len1 < len)
+		if (len1 <= len)
 		{
 			//计算数组的字节长度
 			auto nLen = len1 * sizeof(T);

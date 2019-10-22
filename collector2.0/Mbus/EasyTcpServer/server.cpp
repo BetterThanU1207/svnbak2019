@@ -1,7 +1,7 @@
 ﻿#include "EasyTcpServer.hpp"
 #include <thread>
 #include "CELLMsgStream.hpp"
-
+#include "DataFromCollector.h"
 class MyServer : public EasyTcpServer
 {
 public:
@@ -18,80 +18,41 @@ public:
 	}
 	//cellServer 4 多个线程触发 不安全
 	//如果只开启1个cellServer就是安全的
-	virtual void OnNetMsg(CellServer* pCellServer, CellClient* pClient, netmsg_DataHeader* header)
+	virtual void OnNetMsg(CellServer* pCellServer, CellClient* pClient, char* header, int len)
 	{
-		EasyTcpServer::OnNetMsg(pCellServer, pClient, header);
-		switch (header->cmd)
-		{
-		case CMD_LOGIN:
-		{
-			pClient->resetDTHeart();
-			netmsg_Login* login = (netmsg_Login*)header;
-			//CELLLog::Info("recv <Socket=%d> msgType：CMD_LOGIN, dataLen：%d,userName=%s PassWord=%s\n", cSock, login->dataLength, login->userName, login->PassWord);
-			//忽略判断用户密码是否正确的过程
-			netmsg_LoginR ret;
-			if (SOCKET_ERROR == pClient->SendData(&ret))
-			{
-				//发送缓冲区满了，消息没发出去
-				CELLLog::Info("recv <Socket=%d> msgType：Send Full\n", pClient->sockfd());
-			}
-			//先不使用任务系统
-			//netmsg_LoginR* ret = new netmsg_LoginR();
-			//pCellServer->addSendTask(pClient, ret);
-		}
-		break;
-		case CMD_LOGOUT:
-		{
-			netmsg_Logout* logout = (netmsg_Logout*)header;
-			//CELLLog::Info("recv <Socket=%d> msgType：CMD_LOGOUT, dataLen：%d,userName=%s \n", cSock, logout->dataLength, logout->userName);
-			//忽略判断用户密码是否正确的过程
-			//netmsg_LogoutR ret;
-			//SendData(cSock, &ret);
-		}
-		break;
-		case CMD_C2S_HEART:
-		{
-			pClient->resetDTHeart();
-			netmsg_s2c_Heart ret;
-			pClient->SendData(&ret);
-		}
-		break;
-		default:			
-		{
-				CELLRecvMsgStream r(header);
-				//auto n1 = r.ReadInt8();
-				auto n2 = r.ReadInt16();
-				auto n3 = r.ReadInt32();
-				//auto n4 = r.ReadFloat();
-				//auto n5 = r.ReadDouble();
-				uint32_t n = 0;
-				r.onlyRead(n);
-				char name[32] = {};
-				auto n6 = r.ReadArray(name, 32);
-				//char pw[32] = {};
-				//auto n7 = r.ReadArray(pw, 32);
-				//int ata[10] = {};
-				//auto n8 = r.ReadArray(ata, 10);
-				///
-				CELLSendMsgStream s(128);
-				s.setNetCmd(100);
-				//s.WriteInt8(1);
-				//s.WriteInt16(2);
-				//s.WriteInt32(3);
-				//s.WriteFloat(4.5f);
-				//s.WriteDouble(6.7);
+		EasyTcpServer::OnNetMsg(pCellServer, pClient, header, len);
+		DataFromCollector data;
+		std::vector<std::string> str = data.dataResult((const unsigned char*)header, len);
+		CELLLog::Info(str.at(2).c_str());
+		//CELLRecvMsgStream r(header, len);
+		//auto n1 = r.ReadInt8();
+		//auto n2 = r.ReadInt16();
+		//auto n3 = r.ReadInt32();
+		//auto n4 = r.ReadFloat();
+		//auto n5 = r.ReadDouble();
+		//uint32_t n = 0;
+		//r.onlyRead(n);
+		//char* name = {};
+		//auto n6 = r.ReadArray(name, n);
+		//char pw[32] = {};
+		//auto n7 = r.ReadArray(pw, 32);
+		//int ata[10] = {};
+		//auto n8 = r.ReadArray(ata, 10);
+		///
+		CELLSendMsgStream s(128);
+		//s.WriteInt8(1);
+		//s.WriteInt16(2);
+		//s.WriteInt32(3);
+		//s.WriteFloat(4.5f);
+		//s.WriteDouble(6.7);
 
-				s.WriteString("sever");
-				//char a[] = "ahah";
-				//s.WriteArray(a, strlen(a));
-				//int b[] = { 1,2,3,4,5 };
-				//s.WriteArray(b, 5);
-				s.finsh();
-				pClient->SendData(s.data(), s.length());
-			CELLLog::Info("recv <socket=%d> undefine msgType,dataLen：%d\n", pClient->sockfd(), header->dataLength);
-		}
-		break;
-		}
+		s.WriteString("sever");
+		//char a[] = "ahah";
+		//s.WriteArray(a, strlen(a));
+		//int b[] = { 1,2,3,4,5 };
+		//s.WriteArray(b, 5);
+		s.finsh();
+		pClient->SendData(s.data(), s.length());
 	}
 private:
 

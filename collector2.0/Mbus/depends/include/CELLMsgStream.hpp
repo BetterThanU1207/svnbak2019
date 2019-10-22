@@ -2,27 +2,15 @@
 #define _CELL_MSG_STREAM_HPP_
 
 #include "CELLStream.hpp"
-#include "MessageHeader.hpp"
 
 //消息数据字节流BYTE
 class CELLRecvMsgStream : public CELLStream
 {
 public:
-	CELLRecvMsgStream(netmsg_DataHeader* header)
-		: CELLStream((char*)header, header->dataLength)
+	CELLRecvMsgStream(char* header, int len)
+		: CELLStream((char*)header, len)
 	{
-		push(header->dataLength);
-		//预读取消息长度
-		ReadInt16();
-		//预读取消息命令
-		getNetCmd();
-	}
-
-	int getNetCmd()
-	{
-		uint16_t cmd = CMD_ERROR;
-		Read<uint16_t>(cmd);
-		return cmd;
+		//push(strlen(header));
 	}
 
 public:
@@ -42,13 +30,6 @@ public:
 	CELLSendMsgStream(int nSize = 1024)
 		: CELLStream(nSize)
 	{
-		//预先占领消息长度所需空间
-		Write<uint16_t>(0);
-	}
-
-	void setNetCmd(uint16_t cmd)
-	{
-		Write<uint16_t>(cmd);
 	}
 
 	bool WriteString(const char* str, int len)

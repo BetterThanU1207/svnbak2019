@@ -257,22 +257,24 @@ public:
 		{
 			return -1;
 		}
+		//重置心跳
+		pClient->resetDTHeart();
 		//触发<接收到网络数据>事件
 		_pNetEvent->OnNetRecv(pClient);
 		//循环 判断是否有消息需要处理
 		while (pClient->hasMsg())//循环解决粘包
 		{
 			//处理网络消息
-			OnNetMsg(pClient, pClient->front_msg());//header被处理过后其中header被强制转换和位移已经改变
+			OnNetMsg(pClient, pClient->front_msg(), pClient->_recvBytes);//header被处理过后其中header被强制转换和位移已经改变
 			//移除消息队列（缓冲区）最前的一条数据
 			pClient->pop_front_msg();
 		}
 		return 0;
 	}
 	//响应网络消息
-	virtual void OnNetMsg(CellClient* pClient, netmsg_DataHeader* header)
+	virtual void OnNetMsg(CellClient* pClient, char* pData, int len)
 	{
-		_pNetEvent->OnNetMsg(this, pClient, header);
+		_pNetEvent->OnNetMsg(this, pClient, pData, len);
 	}
 	
 	void addClient(CellClient* pClient)

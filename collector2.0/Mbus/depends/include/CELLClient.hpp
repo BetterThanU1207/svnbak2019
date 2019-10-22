@@ -14,6 +14,8 @@ public:
 	int id = -1;
 	//所属server id
 	int serverId = -1;
+	//接收字节数
+	int _recvBytes = 0;
 public:
 	CellClient(SOCKET sockfd = INVALID_SOCKET) :
 		_sendBuff(SEND_BUFF_SIZE),
@@ -46,7 +48,8 @@ public:
 
 	int RecvData()
 	{
-		return _recvBuff.read4socket(_sockfd);
+		_recvBytes = _recvBuff.read4socket(_sockfd);
+		return _recvBytes;
 	}
 
 	bool hasMsg()
@@ -54,15 +57,15 @@ public:
 		return _recvBuff.hasMsg();
 	}
 
-	netmsg_DataHeader* front_msg()
+	char* front_msg()
 	{
-		return (netmsg_DataHeader*)_recvBuff.data();
+		return _recvBuff.data();
 	}
 
 	void pop_front_msg()
 	{
 		if (hasMsg())
-			_recvBuff.pop(front_msg()->dataLength);
+			_recvBuff.pop(_recvBytes);
 	}
 
 	bool needWrite()
@@ -78,11 +81,6 @@ public:
 	}
 	//缓冲区的控制根据业务需求的差异而调整
 	//发送数据
-	int SendData(netmsg_DataHeader* header)
-	{
-		return SendData((const char*)header, header->dataLength);
-	}
-
 	int SendData(const char* pData, int len)
 	{
 		if (_sendBuff.push(pData, len))
@@ -142,5 +140,6 @@ private:
 	time_t _dtSend;
 	//发送缓冲区遇到写满情况计数
 	int _sendBuffFullCount = 0;
+
 };
 #endif // !_CellClient_hpp_
