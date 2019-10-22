@@ -1,7 +1,4 @@
-﻿/*
-文档说明：高精度计时器
-*/
-#ifndef _CELLTimestamp_hpp_
+﻿#ifndef _CELLTimestamp_hpp_
 #define _CELLTimestamp_hpp_
 
 //#include <windows.h>//windows自带

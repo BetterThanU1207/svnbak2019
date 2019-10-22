@@ -1,7 +1,4 @@
-﻿/*
-文档说明：任务执行服务
-*/
-#ifndef _CELL_TASK_H_
+﻿#ifndef _CELL_TASK_H_
 #define _CELL_TASK_H_
 
 #include <thread>

@@ -1,5 +1,6 @@
 ﻿#include "EasyTcpServer.hpp"
 #include <thread>
+#include "CELLMsgStream.hpp"
 
 class MyServer : public EasyTcpServer
 {
@@ -22,13 +23,13 @@ public:
 		EasyTcpServer::OnNetMsg(pCellServer, pClient, header);
 		switch (header->cmd)
 		{
-		case CMD_DT_SET:
+		case CMD_LOGIN:
 		{
 			pClient->resetDTHeart();
-			netmsg_DtSet* login = (netmsg_DtSet*)header;
+			netmsg_Login* login = (netmsg_Login*)header;
 			//CELLLog::Info("recv <Socket=%d> msgType：CMD_LOGIN, dataLen：%d,userName=%s PassWord=%s\n", cSock, login->dataLength, login->userName, login->PassWord);
 			//忽略判断用户密码是否正确的过程
-			netmsg_DtSet ret;
+			netmsg_LoginR ret;
 			if (SOCKET_ERROR == pClient->SendData(&ret))
 			{
 				//发送缓冲区满了，消息没发出去
@@ -39,15 +40,54 @@ public:
 			//pCellServer->addSendTask(pClient, ret);
 		}
 		break;
-		case CMD_HEART:
+		case CMD_LOGOUT:
+		{
+			netmsg_Logout* logout = (netmsg_Logout*)header;
+			//CELLLog::Info("recv <Socket=%d> msgType：CMD_LOGOUT, dataLen：%d,userName=%s \n", cSock, logout->dataLength, logout->userName);
+			//忽略判断用户密码是否正确的过程
+			//netmsg_LogoutR ret;
+			//SendData(cSock, &ret);
+		}
+		break;
+		case CMD_C2S_HEART:
 		{
 			pClient->resetDTHeart();
-			netmsg_Heart ret;
+			netmsg_s2c_Heart ret;
 			pClient->SendData(&ret);
 		}
 		break;
-		default:
+		default:			
 		{
+				CELLRecvMsgStream r(header);
+				//auto n1 = r.ReadInt8();
+				auto n2 = r.ReadInt16();
+				auto n3 = r.ReadInt32();
+				//auto n4 = r.ReadFloat();
+				//auto n5 = r.ReadDouble();
+				uint32_t n = 0;
+				r.onlyRead(n);
+				char name[32] = {};
+				auto n6 = r.ReadArray(name, 32);
+				//char pw[32] = {};
+				//auto n7 = r.ReadArray(pw, 32);
+				//int ata[10] = {};
+				//auto n8 = r.ReadArray(ata, 10);
+				///
+				CELLSendMsgStream s(128);
+				s.setNetCmd(100);
+				//s.WriteInt8(1);
+				//s.WriteInt16(2);
+				//s.WriteInt32(3);
+				//s.WriteFloat(4.5f);
+				//s.WriteDouble(6.7);
+
+				s.WriteString("sever");
+				//char a[] = "ahah";
+				//s.WriteArray(a, strlen(a));
+				//int b[] = { 1,2,3,4,5 };
+				//s.WriteArray(b, 5);
+				s.finsh();
+				pClient->SendData(s.data(), s.length());
 			CELLLog::Info("recv <socket=%d> undefine msgType,dataLen：%d\n", pClient->sockfd(), header->dataLength);
 		}
 		break;

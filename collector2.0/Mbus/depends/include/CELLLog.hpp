@@ -1,7 +1,4 @@
-﻿/*
-文档说明：日志打印和文件存储
-*/
-#ifndef _CELL_LOG_HPP_
+﻿#ifndef _CELL_LOG_HPP_
 #define _CELL_LOG_HPP_
 
 #include "CELL.hpp"

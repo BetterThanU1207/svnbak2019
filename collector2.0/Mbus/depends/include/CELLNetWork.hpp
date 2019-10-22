@@ -1,7 +1,4 @@
-﻿/*
-文档说明：socket统一初始化
-*/
-#ifndef _CELL_NET_WORK_HPP_
+﻿#ifndef _CELL_NET_WORK_HPP_
 #define _CELL_NET_WORK_HPP_
 
 #include "CELL.hpp"

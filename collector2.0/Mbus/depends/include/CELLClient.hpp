@@ -1,13 +1,10 @@
-﻿/*
-文档说明：客户端管理单元
-*/
-#ifndef _CellClient_hpp_
+﻿#ifndef _CellClient_hpp_
 #define _CellClient_hpp_
 
 #include "CELL.hpp"
 #include "CELLBuffer.hpp"
 //客户端心跳检测死亡计时时间
-#define CLIENT_HREAT_DEAD_TIME 30000
+#define CLIENT_HREAT_DEAD_TIME 60000
 //在间隔指定时间后把发送缓冲区内缓存的消息数据发送给客户端
 #define CLIENT_SEND_BUFF_TIME 200
 //客户端数据类型
@@ -68,6 +65,11 @@ public:
 			_recvBuff.pop(front_msg()->dataLength);
 	}
 
+	bool needWrite()
+	{
+		return _sendBuff.needWrite();
+	}
+
 	//立即将发送缓冲区的数据发送数据给客户端
 	int SendDataReal()
 	{
@@ -75,21 +77,19 @@ public:
 		return _sendBuff.write2socket(_sockfd);
 	}
 	//缓冲区的控制根据业务需求的差异而调整
-
 	//发送数据
 	int SendData(netmsg_DataHeader* header)
 	{
-		int ret = SOCKET_ERROR;
-		//要发送的数据长度
-		int nSendLen = header->dataLength;
-		//要发送的数据
-		const char* pSendData = (const char*)header;
-		
-		if (_sendBuff.push(pSendData, nSendLen))
-		{		
-			return nSendLen;
+		return SendData((const char*)header, header->dataLength);
+	}
+
+	int SendData(const char* pData, int len)
+	{
+		if (_sendBuff.push(pData, len))
+		{
+			return len;
 		}
-		return ret;
+		return SOCKET_ERROR;
 	}
 
 	void resetDTHeart()

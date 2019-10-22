@@ -38,6 +38,7 @@ netmsg_DataHeader* DataFromCollector::dataResult(const unsigned char* data, unsi
 	//ÖØÕûdata
 	netmsg_DtSet* header =  new netmsg_DtSet;
 	header->result = 1;
+	header->realID = (char*)(_hexData[9] + _hexData[8] + _hexData[7] + _hexData[6] + _hexData[5]).data();
 	return header;
 }
 

@@ -1,7 +1,4 @@
-﻿/*
-文档说明：线程封装
-*/
-#ifndef _CELL_THREAD_HPP_
+﻿#ifndef _CELL_THREAD_HPP_
 #define _CELL_THREAD_HPP_
 
 #include <functional>//mem_fun 安全转换
@@ -9,6 +6,13 @@
 
 class CELLThread
 {
+public:
+	static void Sleep(time_t dt)
+	{
+		std::chrono::milliseconds t(dt);
+		std::this_thread::sleep_for(t);
+	}
+
 private:
 	typedef std::function<void(CELLThread*)> EventCall;
 public:

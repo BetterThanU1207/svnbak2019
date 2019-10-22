@@ -1,7 +1,4 @@
-﻿/*
-文档说明：网络事件接口
-*/
-#ifndef _I_NET_EVENT_HPP_
+﻿#ifndef _I_NET_EVENT_HPP_
 #define _I_NET_EVENT_HPP_
 
 #include "CELL.hpp"

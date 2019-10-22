@@ -1,7 +1,4 @@
-﻿/*
-文档说明：server socket 一个EasyTcpServer start n个CellServer，一个CellServer均分所有客户端
-*/
-#ifndef _EasyTcpServer_hpp_
+﻿#ifndef _EasyTcpServer_hpp_
 #define _EasyTcpServer_hpp_
 
 #include <vector>

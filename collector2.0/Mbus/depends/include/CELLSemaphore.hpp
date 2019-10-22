@@ -1,7 +1,4 @@
-﻿/*
-文档说明：线程退出信号量控制实现
-*/
-#ifndef _CELL_SEMAPORE_HPP_
+﻿#ifndef _CELL_SEMAPORE_HPP_
 #define _CELL_SEMAPORE_HPP_
 
 #include <chrono>

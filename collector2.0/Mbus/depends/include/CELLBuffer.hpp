@@ -1,11 +1,7 @@
-﻿/*
-文档说明：实现动态申请缓冲区及缓冲区管理
-*/
-#ifndef _CELL_BUFFER_HPP_
+﻿#ifndef _CELL_BUFFER_HPP_
 #define _CELL_BUFFER_HPP_
 
 #include "CELL.hpp"
-#include "DataFromCollector.h"
 
 class CELLBuffer
 {
@@ -26,11 +22,26 @@ public:
 
 	char* data()
 	{
-		return (char*)_changedData;
+		return _pBuff;
 	}
 
 	bool push(const char* pData, int nLen)
 	{
+		////写入大量数据不一定要当道内存中
+		////也可以存储到数据库或者磁盘等
+		//if (_nLast + nLen > _nSize)
+		//{	
+		//	//需要写入的数据大于可用空间
+		//	int n = (_nLast + nLen) - _nSize;
+		//	//拓展BUFF
+		//	if (n < 8192)
+		//		n = 8192;
+		//	char* buff = new char[_nSize + n];
+		//	memcpy(buff, _pBuff, _nLast);
+		//	delete[] _pBuff;
+		//	_pBuff = buff;
+		//}
+
 		if (_nLast + nLen <= _nSize)
 		{
 			//将要发送的数据 拷贝到发送缓冲区尾部
@@ -81,18 +92,8 @@ public:
 		if (_nSize - _nLast > 0)
 		{
 			//接收客户端数据
-			unsigned char* szRecv = (unsigned char*)_pBuff + _nLast;
-			int nLen = (int)recv(sockfd, (char*)szRecv, _nSize - _nLast, 0);
-			//----------------解析协议-------------------------	
-			DataFromCollector dataDeal;
-			_changedData = dataDeal.dataResult(szRecv, nLen);
-			//打印原始数据的十六进制
-			CELLLog::Info("rawData=");
-			for (int i = 0; i< nLen; i++)
-			{				
-				CELLLog::Info("%02X", szRecv[i]);
-			}			
-			CELLLog::Info("\n");
+			char* szRecv = _pBuff + _nLast;
+			int nLen = (int)recv(sockfd, szRecv, _nSize - _nLast, 0);
 			if (nLen <= 0)
 			{
 				return nLen;
@@ -110,16 +111,20 @@ public:
 		if (_nLast >= sizeof(netmsg_DataHeader))//循环解决粘包
 		{
 			//这是就可以知道当前消息的长度
-			netmsg_DataHeader* header = _changedData;
+			netmsg_DataHeader* header = (netmsg_DataHeader*)_pBuff;
 			//判断消息缓冲区的数据长度大于消息长度		
 			return _nLast >= header->dataLength;
 		}
 		return false;
 	}
 
+	bool needWrite()
+	{
+		//缓冲区中有数据，表示需要写（发送）数据
+		return _nLast > 0;
+	}
+
 private:
-	//缓冲区数据转换
-	netmsg_DataHeader* _changedData;
 	//第二缓冲区 发送缓冲区 动态大小
 	char* _pBuff = nullptr;
 	//可以用链表或者队列来管理缓冲数据块

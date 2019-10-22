@@ -1,7 +1,4 @@
-﻿/*
-文档说明：网络消息处理（读写）服务
-*/
-#ifndef _CELL_SERVER_HPP_
+﻿#ifndef _CELL_SERVER_HPP_
 #define _CELL_SERVER_HPP_
 
 #include <vector>
@@ -43,6 +40,11 @@ public:
 		CELLLog::Info("CellServer%d.CloseSocket exit end\n", _id);
 	}
 
+	//判断是否工作中
+	//bool isRun()
+	//{
+	//	return _sock != INVALID_SOCKET;
+	//}
 	//处理网络消息
 	void OnRun(CELLThread* pThread)
 	{

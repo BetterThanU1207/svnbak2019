@@ -1,7 +1,4 @@
-﻿/*
-文档说明：项目公共头文件
-*/
-#ifndef _CELL_HPP_
+﻿#ifndef _CELL_HPP_
 #define _CELL_HPP_
 
 //SOCKET相关跨平台头文件
