@@ -60,8 +60,8 @@ public:
 		{
 				CELLRecvMsgStream r(header);
 				//auto n1 = r.ReadInt8();
-				//auto n2 = r.ReadInt16();
-				//auto n3 = r.ReadInt32();
+				auto n2 = r.ReadInt16();
+				auto n3 = r.ReadInt32();
 				//auto n4 = r.ReadFloat();
 				//auto n5 = r.ReadDouble();
 				uint32_t n = 0;

@@ -162,7 +162,9 @@ void sendThread(int id)
 	const int nLen = sizeof(login);
 
 	CELLSendMsgStream s(128);
-	s.setNetCmd(100);
+	//s.setNetCmd(100);
+	s.WriteInt16(2);
+	s.WriteInt32(3);
 	s.WriteString("client");
 	s.finsh();
 
