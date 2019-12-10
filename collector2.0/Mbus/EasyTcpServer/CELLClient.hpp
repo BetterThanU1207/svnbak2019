@@ -4,7 +4,7 @@
 #include "CELL.hpp"
 #include "CELLBuffer.hpp"
 //客户端心跳检测死亡计时时间
-#define CLIENT_HREAT_DEAD_TIME 30000
+#define CLIENT_HREAT_DEAD_TIME 60000
 //在间隔指定时间后把发送缓冲区内缓存的消息数据发送给客户端
 #define CLIENT_SEND_BUFF_TIME 200
 //客户端数据类型
