@@ -1,0 +1,59 @@
+ {
+  "version": "1.0",
+  "description": "以下所有主站、从站设备信息均为模拟测试数据【20191108】",
+  "masters": [{
+    "masterId": "13908320013",
+    "description":"主站1",
+    "slaves": [{
+      "slaveId":"001",
+      "description":"主站1下1号从站",
+      "address":1,
+      "interval":60,
+      "dn":100,
+      "type":2,
+      "params": [{
+        "paramName":"累计流量",
+        "description":"",
+        "address":4119,
+        "bytes":4
+      },{
+        "paramName":"瞬时流量",
+        "description":"",
+        "address":4121,
+        "bytes":4
+      },{
+        "paramName":"压力",
+        "description":"",
+        "address":4125,
+        "bytes":2
+      }]
+    }]
+  },{
+    "masterId": "13908320053",
+    "description":"主站1",
+    "slaves": [{
+      "slaveId":"001",
+      "description":"主站2下1号从站",
+      "address":1,
+      "interval":60,
+      "dn":100,
+      "type":1,
+      "params": [{
+        "paramName":"累计流量",
+        "description":"",
+        "address":4119,
+        "bytes":4
+      },{
+        "paramName":"瞬时流量",
+        "description":"",
+        "address":4121,
+        "bytes":4
+      },{
+        "paramName":"压力",
+        "description":"",
+        "address":4125,
+        "bytes":2
+      }]
+    }]
+  }]
+}
